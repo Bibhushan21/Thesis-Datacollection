@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Challenges.one - Strategic Intelligence Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --lapis-jewel: #166697;
+            --kodama-white: #E6F1FF;
+            --nickel: #939393;
+            --oxford-blue: #00264B;
+            --pervenche: #008CED;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--oxford-blue) 0%, var(--lapis-jewel) 50%, var(--pervenche) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            max-width: 1200px;
+            width: 100%;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 38, 75, 0.15);
+            overflow: hidden;
+            min-height: 600px;
+        }
+        
+        .login-form-section {
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .logo-section {
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .logo img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+        
+        .logo-text {
+            font-family: 'Roboto Slab', serif;
+            font-weight: 700;
+            font-size: 28px;
+            color: var(--oxford-blue);
+        }
+        
+        .tagline {
+            font-family: 'Roboto', sans-serif;
+            color: var(--nickel);
+            font-size: 14px;
+            margin-left: 65px;
+        }
+        
+        .form-header {
+            margin-bottom: 40px;
+        }
+        
+        .form-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 900;
+            font-size: 32px;
+            color: var(--oxford-blue);
+            margin-bottom: 8px;
+        }
+        
+        .form-subtitle {
+            color: var(--nickel);
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 700;
+            color: var(--oxford-blue);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--kodama-white);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: var(--white);
+            color: var(--oxford-blue);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--pervenche);
+            box-shadow: 0 0 0 3px rgba(0, 140, 237, 0.1);
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--nickel);
+            font-size: 18px;
+        }
+        
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 32px;
+        }
+        
+        .forgot-password a {
+            color: var(--lapis-jewel);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        
+        .forgot-password a:hover {
+            color: var(--pervenche);
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--lapis-jewel) 0%, var(--pervenche) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 900;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+        }
+        
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(22, 102, 151, 0.3);
+        }
+        
+        .signup-link {
+            text-align: center;
+            color: var(--nickel);
+            font-size: 14px;
+        }
+        
+        .signup-link a {
+            color: var(--lapis-jewel);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        
+        .signup-link a:hover {
+            color: var(--pervenche);
+        }
+        
+        .visual-section {
+            background: linear-gradient(135deg, var(--kodama-white) 0%, rgba(22, 102, 151, 0.1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .visual-content {
+            text-align: center;
+            z-index: 2;
+        }
+        
+        .visual-title {
+            font-family: 'Roboto Slab', serif;
+            font-weight: 700;
+            font-size: 36px;
+            color: var(--oxford-blue);
+            margin-bottom: 20px;
+        }
+        
+        .visual-subtitle {
+            font-size: 18px;
+            color: var(--lapis-jewel);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+                 .visual-graphic {
+             width: 100%;
+             max-width: 350px;
+             border-radius: 16px;
+             overflow: hidden;
+             box-shadow: 0 10px 30px rgba(22, 102, 151, 0.1);
+         }
+         
+         .visual-graphic img {
+             width: 100%;
+             height: auto;
+             display: block;
+             border-radius: 16px;
+         }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid #f5c6cb;
+            font-size: 14px;
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+        
+        @media (max-width: 768px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                margin: 20px;
+            }
+            
+            .visual-section {
+                display: none;
+            }
+            
+            .login-form-section {
+                padding: 40px 30px;
+            }
+            
+            .form-title {
+                font-size: 28px;
+            }
+            
+            .visual-title {
+                font-size: 28px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .login-form-section {
+                padding: 30px 20px;
+            }
+            
+            .logo-text {
+                font-size: 24px;
+            }
+        }
+        
+        /* Footer Styles */
+        footer {
+            margin-top: auto;
+        }
+        
+        footer a {
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: none;
+        }
+        
+        footer ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* Grid system for footer */
+        .grid {
+            display: grid;
+        }
+        
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        
+        .gap-4 {
+            gap: 1rem;
+        }
+        
+        .gap-6 {
+            gap: 1.5rem;
+        }
+        
+        .gap-8 {
+            gap: 2rem;
+        }
+        
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+        
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+        
+        .mb-0 {
+            margin-bottom: 0;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-justify {
+            text-align: justify;
+        }
+        
+        .text-sm {
+            font-size: 0.875rem;
+        }
+        
+        .leading-relaxed {
+            line-height: 1.625;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .flex-col {
+            flex-direction: column;
+        }
+        
+        .flex-row {
+            flex-direction: row;
+        }
+        
+        .flex-wrap {
+            flex-wrap: wrap;
+        }
+        
+        .justify-center {
+            justify-content: center;
+        }
+        
+        .justify-start {
+            justify-content: flex-start;
+        }
+        
+        .justify-between {
+            justify-content: space-between;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .text-gray-600 {
+            color: #6B7280;
+        }
+        
+        .hover\\:text-blue-600:hover {
+            color: #2563EB;
+        }
+        
+        .transition {
+            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+        }
+        
+        .duration-200 {
+            transition-duration: 200ms;
+        }
+        
+        .max-w-6xl {
+            max-width: 72rem;
+        }
+        
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .px-6 {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+        
+        .py-8 {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        
+        .h-16 {
+            height: 4rem;
+        }
+        
+        .w-auto {
+            width: auto;
+        }
+        
+        .border-blue-600 {
+            border-color: #2563EB;
+        }
+        
+        .border-l-2 {
+            border-left-width: 2px;
+        }
+        
+        .pl-6 {
+            padding-left: 1.5rem;
+        }
+        
+        @media (min-width: 768px) {
+            .md\\:grid-cols-12 {
+                grid-template-columns: repeat(12, minmax(0, 1fr));
+            }
+            
+            .md\\:col-span-2 {
+                grid-column: span 2 / span 2;
+            }
+            
+            .md\\:col-span-10 {
+                grid-column: span 10 / span 10;
+            }
+            
+            .md\\:border-l-2 {
+                border-left-width: 2px;
+            }
+            
+            .md\\:pl-6 {
+                padding-left: 1.5rem;
+            }
+            
+            .md\\:justify-start {
+                justify-content: flex-start;
+            }
+            
+            .md\\:flex-row {
+                flex-direction: row;
+            }
+            
+            .md\\:items-center {
+                align-items: center;
+            }
+            
+            .md\\:mb-0 {
+                margin-bottom: 0;
+            }
+            
+            .md\\:gap-8 {
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <div class="login-container">
+        <div class="login-form-section">
+            <div class="logo-section">
+                <div class="logo">
+                    <img src="{{ url_for('static', path='Multiverz Logo.png') }}" alt="challenges.one Logo">
+                    <span class="logo-text">challenges.one</span>
+                </div>
+                <div class="tagline">Strategic Intelligence Platform</div>
+            </div>
+            
+            <div class="form-header">
+                <h1 class="form-title">Welcome</h1>
+                <p class="form-subtitle">Sign in to unlock strategic intelligence and drive meaningful change</p>
+            </div>
+            
+            {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <form method="post" action="/login">
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        Email Address <span class="required">*</span>
+                    </label>
+                    <input type="email" name="email" id="email" class="form-input" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        Password <span class="required">*</span>
+                    </label>
+                    <div class="password-container">
+                        <input type="password" name="password" id="password" class="form-input" placeholder="Enter your password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <span id="eyeIcon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="forgot-password">
+                    <a href="#" onclick="alert('Password reset functionality coming soon!')">Forgot Password?</a>
+                </div>
+                
+                <button type="submit" class="login-button">
+                    SIGN IN
+                </button>
+            </form>
+            
+            <div class="signup-link">
+                Don't have an account? <a href="/signup">Create one here</a>
+            </div>
+        </div>
+        
+                 <div class="visual-section">
+             <div class="visual-content">
+                 <h2 class="visual-title">Strategic Intelligence</h2>
+                 <p class="visual-subtitle">Unlock insights, make informed decisions, and drive strategic success with our comprehensive analysis platform.</p>
+                 <div class="visual-graphic">
+                     <img src="https://challenges.one/images/login/main.webp" alt="Strategic Intelligence Dashboard" loading="lazy">
+                 </div>
+             </div>
+         </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-white border-t-2 border-gray-200 mt-auto">
+        <div class="max-w-6xl mx-auto px-6 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div class="md:col-span-2 flex justify-center md:justify-start">
+                    <img src="{{ url_for('static', path='Multiverz Logo.png') }}" alt="Challenges.one Logo" class="h-16 w-auto">
+                </div>
+                <div class="md:col-span-10 md:border-l-2 border-blue-600 md:pl-6">
+                    <p class="text-gray-600 text-sm leading-relaxed text-justify mb-0">
+                        Challenges.one is a social impact-driven open innovation platform that harnesses collective intelligence to create meaningful change in people's lives. With a mission to positively impact at least 100,000 lives through each challenge featured on the platform, it empowers participants to think strategically about future solutions while making a tangible difference.
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                <div class="mb-4 md:mb-0">
+                    <ul class="flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 list-none p-0 m-0">
+                        <li><a href="/about-us" class="text-gray-600 hover:text-blue-600 transition duration-200 text-decoration-none">About Us</a></li>
+                        <li><a href="/contact-us" class="text-gray-600 hover:text-blue-600 transition duration-200 text-decoration-none">Contact Us</a></li>
+                        <li><a href="/terms-conditions" class="text-gray-600 hover:text-blue-600 transition duration-200 text-decoration-none">Terms & Conditions</a></li>
+                        <li><a href="/privacy-policy" class="text-gray-600 hover:text-blue-600 transition duration-200 text-decoration-none">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr style="border: 1px solid #3b82f6; margin: 1.5rem 0;">
+            <div class="text-center">
+                <p class="text-gray-600 text-sm mb-0">Multiverz © 2025</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.textContent = '🙈';
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.textContent = '👁️';
+            }
+        }
+    </script>
+</body>
+</html> 

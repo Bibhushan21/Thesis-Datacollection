@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis History - Challenges.one</title>
+    <!-- Google Fonts for Company Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-lapis': '#166697',
+                        'brand-kodama': '#E6F1FF', 
+                        'brand-nickel': '#939393',
+                        'brand-oxford': '#00264B',
+                        'brand-pervenche': '#008CED',
+                        'brand-white': '#ffffff'
+                    },
+                    fontFamily: {
+                        'brand-black': ['Roboto', 'sans-serif'],
+                        'brand-slab': ['Roboto Slab', 'serif'], 
+                        'brand-regular': ['Roboto', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="/static/css/home.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50">
+    <div id="root">
+        <div class="min-h-screen bg-slate-100 text-slate-800">
+            <!-- Header -->
+            <header class="shadow-md">
+                <div class="container mx-auto max-w-5xl px-4 py-6">
+            <div class="flex items-center justify-between">
+                <!-- Logo and Brand -->
+                <div class="flex items-center">
+                            <img src="/static/Multiverz Logo.png" alt="Challenges.one Logo" class="h-10 mr-3">
+                            <div>
+                                <h1 class="text-2xl md:text-3xl font-brand-black font-black text-brand-oxford">Challenges.one</h1>
+                                <p class="text-sm text-brand-kodama">Strategic Intelligence Platform</p>
+                            </div>
+                </div>
+                        <!-- Navigation -->
+                        <div class="flex items-center space-x-4">
+                            <a href="/" class="text-brand-oxford hover:text-brand-lapis transition duration-200 font-brand-regular">
+                                <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                    </svg>
+                                Back to Analysis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+                
+            <!-- Main Content -->
+            <main class="container mx-auto max-w-5xl px-4 py-8">
+                <!-- Header Section -->
+                <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-3xl font-bold text-brand-oxford font-brand-slab">Analysis History</h2>
+                            <p class="text-brand-nickel mt-2 font-brand-regular">View and manage your previous strategic analyses</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button id="refreshHistory" class="bg-brand-lapis text-white px-4 py-2 rounded-lg hover:bg-brand-oxford transition duration-200 font-brand-regular">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                                Refresh
+                    </button>
+                </div>
+            </div>
+            
+                    <!-- Filters -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-brand-oxford mb-2 font-brand-regular">Search</label>
+                            <input type="text" id="searchInput" placeholder="Search analyses..." 
+                                   class="w-full px-4 py-2 border-2 border-brand-nickel rounded-lg focus:ring-2 focus:ring-brand-lapis focus:border-brand-lapis outline-none transition duration-200 font-brand-regular">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-brand-oxford mb-2 font-brand-regular">Status</label>
+                            <select id="statusFilter" class="w-full px-4 py-2 border-2 border-brand-nickel rounded-lg focus:ring-2 focus:ring-brand-lapis focus:border-brand-lapis outline-none transition duration-200 font-brand-regular">
+                                <option value="">All Status</option>
+                                <option value="completed">Completed</option>
+                                <option value="failed">Failed</option>
+                                <option value="in_progress">In Progress</option>
+                            </select>
+                </div>
+                        <div>
+                            <label class="block text-sm font-medium text-brand-oxford mb-2 font-brand-regular">Region</label>
+                            <select id="regionFilter" class="w-full px-4 py-2 border-2 border-brand-nickel rounded-lg focus:ring-2 focus:ring-brand-lapis focus:border-brand-lapis outline-none transition duration-200 font-brand-regular">
+                                <option value="">All Regions</option>
+                                <option value="Global">Global</option>
+                                <option value="North America">North America</option>
+                                <option value="Europe">Europe</option>
+                                <option value="Asia">Asia</option>
+                                <option value="Africa">Africa</option>
+                                <option value="Latin America">Latin America</option>
+                            </select>
+            </div>
+        </div>
+                </section>
+
+                <!-- Loading Section -->
+                <section id="loading-section" class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8 hidden">
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-12 h-12 bg-brand-lapis rounded-full mb-4">
+                            <svg class="w-6 h-6 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-brand-nickel font-brand-regular">Loading analysis history...</p>
+                    </div>
+                </section>
+
+                <!-- History Results -->
+                <section id="historyResults">
+                    <!-- Results will be populated here -->
+                </section>
+
+            <!-- Empty State -->
+                <section id="emptyState" class="bg-white p-6 md:p-8 rounded-xl shadow-lg text-center hidden">
+                    <div class="max-w-md mx-auto">
+                        <svg class="w-16 h-16 text-brand-nickel mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h3 class="text-xl font-bold text-brand-oxford mb-2 font-brand-slab">No Analyses Found</h3>
+                        <p class="text-brand-nickel mb-6 font-brand-regular">You haven't created any strategic analyses yet. Start your first analysis to see it here.</p>
+                        <a href="/" class="bg-brand-lapis text-white px-6 py-3 rounded-lg hover:bg-brand-oxford transition duration-200 inline-flex items-center font-brand-black">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Create Analysis
+                        </a>
+                </div>
+                </section>
+            </main>
+            
+
+        </div>
+    </div>
+
+    <script>
+        // History page functionality
+        let currentAnalyses = [];
+        let filteredAnalyses = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAnalysisHistory();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Search input
+            document.getElementById('searchInput').addEventListener('input', filterAnalyses);
+            
+            // Filter dropdowns
+            document.getElementById('statusFilter').addEventListener('change', filterAnalyses);
+            document.getElementById('regionFilter').addEventListener('change', filterAnalyses);
+            
+            // Refresh button
+            document.getElementById('refreshHistory').addEventListener('click', loadAnalysisHistory);
+        }
+
+        async function loadAnalysisHistory() {
+            showLoading();
+            
+            try {
+                const response = await fetch('/api/analysis-history?limit=50');
+                if (response.ok) {
+                    const data = await response.json();
+                    currentAnalyses = data.data?.sessions || [];
+                    filteredAnalyses = [...currentAnalyses];
+                    displayAnalyses();
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                showEmptyState();
+            }
+            
+            hideLoading();
+        }
+
+        function filterAnalyses() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const regionFilter = document.getElementById('regionFilter').value;
+
+            filteredAnalyses = currentAnalyses.filter(analysis => {
+                const matchesSearch = !searchTerm || 
+                    analysis.strategic_question?.toLowerCase().includes(searchTerm) ||
+                    analysis.region?.toLowerCase().includes(searchTerm);
+                
+                const matchesStatus = !statusFilter || analysis.status === statusFilter;
+                const matchesRegion = !regionFilter || analysis.region === regionFilter;
+
+                return matchesSearch && matchesStatus && matchesRegion;
+            });
+
+            displayAnalyses();
+        }
+
+        function displayAnalyses() {
+            const resultsContainer = document.getElementById('historyResults');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredAnalyses.length === 0) {
+                resultsContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            
+            const analysesHTML = filteredAnalyses.map(analysis => `
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-6 hover:shadow-xl transition-shadow duration-200">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-brand-oxford font-brand-slab mb-2">
+                                ${analysis.strategic_question || 'Untitled Analysis'}
+                            </h3>
+                            <div class="flex flex-wrap gap-4 text-sm text-brand-nickel font-brand-regular">
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    ${analysis.time_frame || 'N/A'}
+                                </span>
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    ${analysis.region || 'N/A'}
+                                </span>
+                                <span class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    ${new Date(analysis.created_at).toLocaleDateString()}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex items-center space-x-2">
+                            ${getStatusBadge(analysis.status)}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between pt-4 border-t border-brand-kodama">
+                        <div class="text-sm text-brand-nickel font-brand-regular">
+                            Session ID: ${analysis.id || 'N/A'}
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="viewAnalysis('${analysis.id}')" 
+                                    class="bg-brand-lapis text-white px-4 py-2 rounded-lg hover:bg-brand-oxford transition duration-200 text-sm font-brand-regular">
+                                View Details
+                            </button>
+                            <button onclick="downloadAnalysis('${analysis.id}')" 
+                                    class="bg-brand-pervenche text-white px-4 py-2 rounded-lg hover:bg-brand-lapis transition duration-200 text-sm font-brand-regular">
+                                Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            resultsContainer.innerHTML = analysesHTML;
+        }
+
+        function getStatusBadge(status) {
+            const statusConfig = {
+                'completed': { color: 'bg-green-100 text-green-800', text: 'Completed' },
+                'failed': { color: 'bg-red-100 text-red-800', text: 'Failed' },
+                'in_progress': { color: 'bg-yellow-100 text-yellow-800', text: 'In Progress' }
+            };
+
+            const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', text: 'Unknown' };
+            
+            return `<span class="px-3 py-1 rounded-full text-xs font-medium ${config.color}">${config.text}</span>`;
+        }
+
+        function showLoading() {
+            document.getElementById('loading-section').classList.remove('hidden');
+            document.getElementById('historyResults').innerHTML = '';
+            document.getElementById('emptyState').classList.add('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-section').classList.add('hidden');
+        }
+
+        function showEmptyState() {
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('historyResults').innerHTML = '';
+        }
+
+        function viewAnalysis(sessionId) {
+            // Create and show modal with analysis details
+            fetch(`/api/analysis-session/${sessionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showAnalysisModal(data.data);
+                    } else {
+                        alert('Failed to load analysis details');
+                    }
+                })
+                .catch(error => {
+                    console.error('View error:', error);
+                    alert('Error loading analysis details');
+                });
+        }
+
+        function showAnalysisModal(session) {
+            // Create modal HTML
+            const modalHTML = `
+                <div id="analysisModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                        <!-- Modal Header -->
+                        <div class="bg-brand-oxford text-white p-6 flex justify-between items-center">
+                            <h2 class="text-xl font-brand-black">Analysis Details - Session ${session.id}</h2>
+                            <button onclick="closeAnalysisModal()" class="text-white hover:text-brand-kodama text-2xl">&times;</button>
+                        </div>
+                        
+                        <!-- Modal Content -->
+                        <div class="flex-1 overflow-y-auto p-6">
+                            <!-- Session Info -->
+                            <div class="bg-brand-kodama bg-opacity-10 p-4 rounded-lg mb-6">
+                                <h3 class="text-lg font-brand-slab mb-3 text-brand-oxford">Question & Context</h3>
+                                <div class="space-y-2 text-brand-nickel font-brand-regular">
+                                    <p><strong>Strategic Question:</strong> ${session.strategic_question}</p>
+                                    <p><strong>Time Frame:</strong> ${session.time_frame || 'N/A'}</p>
+                                    <p><strong>Region:</strong> ${session.region || 'N/A'}</p>
+                                    <p><strong>Created:</strong> ${new Date(session.created_at).toLocaleString()}</p>
+                                    <p><strong>Status:</strong> <span class="px-2 py-1 rounded-full text-xs ${session.status === 'completed' ? 'bg-green-100 text-green-800' : session.status === 'failed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">${session.status}</span></p>
+                                    ${session.additional_instructions ? `<p><strong>Additional Instructions:</strong> ${session.additional_instructions}</p>` : ''}
+                                </div>
+                            </div>
+                            
+                            <!-- Agent Results -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-brand-slab text-brand-oxford">Agent Results</h3>
+                                ${session.agent_results && session.agent_results.length > 0 ? 
+                                    session.agent_results.map(result => `
+                                        <div class="border border-brand-kodama rounded-lg p-4">
+                                            <div class="flex justify-between items-center mb-3">
+                                                <h4 class="font-brand-slab text-brand-oxford">${result.agent_name}</h4>
+                                                <span class="px-2 py-1 rounded-full text-xs ${result.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${result.status}</span>
+                                            </div>
+                                            <div class="text-brand-nickel font-brand-regular">
+                                                ${result.formatted_output ? 
+                                                    `<div class="prose max-w-none">${result.formatted_output.split('\\n').map(line => `<p>${line}</p>`).join('')}</div>` :
+                                                    result.raw_response ? 
+                                                    `<p>${result.raw_response}</p>` :
+                                                    '<p class="text-gray-500 italic">No output available</p>'
+                                                }
+                                            </div>
+                                            ${result.processing_time ? `<div class="text-xs text-brand-nickel mt-2">Processing Time: ${result.processing_time.toFixed(2)}s</div>` : ''}
+                                        </div>
+                                    `).join('') :
+                                    '<p class="text-brand-nickel font-brand-regular italic">No agent results available</p>'
+                                }
+                            </div>
+                        </div>
+                        
+                        <!-- Modal Footer -->
+                        <div class="bg-gray-50 p-4 flex justify-end gap-3">
+                            <button onclick="downloadAnalysis(${session.id})" class="bg-brand-pervenche text-white px-4 py-2 rounded-lg hover:bg-brand-lapis transition duration-200 font-brand-regular">
+                                Download
+                            </button>
+                            <button onclick="closeAnalysisModal()" class="bg-brand-nickel text-white px-4 py-2 rounded-lg hover:bg-brand-oxford transition duration-200 font-brand-regular">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+            
+            // Close modal when clicking outside
+            document.getElementById('analysisModal').addEventListener('click', function(e) {
+                if (e.target.id === 'analysisModal') {
+                    closeAnalysisModal();
+                }
+            });
+        }
+
+        function closeAnalysisModal() {
+            const modal = document.getElementById('analysisModal');
+            if (modal) {
+                modal.remove();
+                document.body.style.overflow = '';
+            }
+        }
+
+        function downloadAnalysis(sessionId) {
+            try {
+                // Create a simple text download of the analysis
+                fetch(`/api/analysis-session/${sessionId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            const session = data.data;
+                            let content = `Strategic Intelligence Analysis Report\n`;
+                            content += `=========================================\n\n`;
+                            content += `Strategic Question: ${session.strategic_question}\n`;
+                            content += `Time Frame: ${session.time_frame || 'N/A'}\n`;
+                            content += `Region: ${session.region || 'N/A'}\n`;
+                            content += `Created: ${new Date(session.created_at).toLocaleString()}\n`;
+                            content += `Status: ${session.status}\n\n`;
+                            
+                            // Add agent results if available
+                            if (session.agent_results && session.agent_results.length > 0) {
+                                content += `Agent Results:\n`;
+                                content += `==============\n\n`;
+                                session.agent_results.forEach(result => {
+                                    content += `${result.agent_name}:\n`;
+                                    content += `${'-'.repeat(result.agent_name.length + 1)}\n`;
+                                    content += `${result.formatted_output || result.raw_response || 'No output available'}\n\n`;
+                                });
+                            }
+                            
+                            // Create download
+                            const blob = new Blob([content], { type: 'text/plain' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `analysis_${sessionId}_${new Date().toISOString().split('T')[0]}.txt`;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                        } else {
+                            alert('Failed to load analysis data for download');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Download error:', error);
+                        alert('Error downloading analysis');
+                    });
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Error downloading analysis');
+            }
+        }
+    </script>
+    
+    <!-- Footer -->
+    <footer class="text-center text-lg-start pt-4 bg-white border-t border-brand-kodama mt-16">
+        <div class="container mx-auto max-w-5xl p-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-5">
+                <div class="md:col-span-2 flex justify-center md:justify-start">
+                    <img src="/static/Multiverz Logo.png" alt="Challenges.one Logo" class="h-16 w-auto">
+                </div>
+                <div class="md:col-span-10 md:border-l-2 md:border-brand-lapis md:pl-6">
+                    <p class="mb-0 text-justify text-brand-nickel font-brand-regular text-sm leading-relaxed">
+                        Challenges.one is a social impact-driven open innovation platform that harnesses collective intelligence to create meaningful change in people's lives. With a mission to positively impact at least 100,000 lives through each challenge featured on the platform, it empowers participants to think strategically about future solutions while making a tangible difference.
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                <div class="mb-4 md:mb-0">
+                    <ul class="flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 mb-0 font-brand-regular">
+                        <li><a href="/about-us" class="text-brand-nickel hover:text-brand-oxford transition duration-200 no-underline">About Us</a></li>
+                        <li><a href="/contact-us" class="text-brand-nickel hover:text-brand-oxford transition duration-200 no-underline">Contact Us</a></li>
+                        <li><a href="/terms-conditions" class="text-brand-nickel hover:text-brand-oxford transition duration-200 no-underline">Terms & Conditions</a></li>
+                        <li><a href="/privacy-policy" class="text-brand-nickel hover:text-brand-oxford transition duration-200 no-underline">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="border-2 border-brand-lapis my-4">
+            <div class="text-center">
+                <p class="mb-0 text-brand-nickel font-brand-regular pb-5">Multiverz © 2025</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html> 

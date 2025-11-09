@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategic Intelligence Analysis - Challenges.one</title>
+    <!-- Google Fonts for Company Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-lapis': '#166697',
+                        'brand-kodama': '#E6F1FF', 
+                        'brand-nickel': '#939393',
+                        'brand-oxford': '#00264B',
+                        'brand-pervenche': '#008CED',
+                        'brand-white': '#ffffff'
+                    },
+                    fontFamily: {
+                        'brand-black': ['Roboto', 'sans-serif'],
+                        'brand-slab': ['Roboto Slab', 'serif'], 
+                        'brand-regular': ['Roboto', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="/static/css/home.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            mangle: false
+        });
+    </script>
+</head>
+<body class="bg-slate-50">
+    <div id="root">
+        <div class="min-h-screen bg-slate-100 text-slate-800">
+            <!-- Header -->
+            <header class="bg-white shadow-md">
+                <div class="container mx-auto max-w-5xl px-4 py-6">
+                    <div class="flex items-center justify-between">
+                        <!-- Logo and Brand -->
+                        <div class="flex items-center">
+                            <img src="/static/Multiverz Logo.png" alt="Challenges.one Logo" class="h-10 mr-3">
+                            <div>
+                                <h1 class="text-2xl md:text-3xl font-brand-black font-black text-brand-oxford">Challenges.one</h1>
+                                <p class="text-sm text-brand-kodama">Strategic Intelligence Platform</p>
+                            </div>
+                        </div>
+                        <!-- Navigation -->
+                        <div class="hidden md:flex items-center space-x-6">
+                            <a href="/history"
+                                class="text-brand-oxford hover:text-brand-lapis transition duration-200 font-brand-regular flex items-center">
+                                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                History
+                            </a>
+                            <!-- Authentication removed for direct access -->
+                        </div>
+
+                        <!-- Mobile menu button -->
+                        <div class="md:hidden">
+                            <button id="mobile-menu-button"
+                                class="text-brand-oxford hover:text-brand-lapis focus:outline-none">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu (Hidden by default) -->
+                    <div id="mobile-menu" class="md:hidden hidden mt-4 pb-4 border-t border-brand-kodama">
+                        <div class="flex flex-col space-y-3 pt-4">
+                            <a href="/history"
+                                class="text-brand-oxford hover:text-brand-lapis font-brand-regular transition duration-200 flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                History
+                            </a>
+
+                            <!-- Authentication removed for direct access -->
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="container mx-auto max-w-5xl px-4 py-8">
+                <!-- Search Section -->
+                <section id="search-section" class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Strategic Analysis Input</h2>
+                    <p class="text-slate-600 mb-6">Enter your strategic question to receive comprehensive analysis from our AI agents. The complete analysis will take 2-3 minutes to process.</p>
+                    
+                    <!-- Analysis Form -->
+                    <form id="analysisForm" action="/analysis/analyze-batch" method="POST" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-brand-oxford mb-2 font-brand-regular">Strategic Question</label>
+                                <input type="text" 
+                                       name="strategic_question" 
+                                       id="strategic_question"
+                                       placeholder="e.g., How can we improve digital transformation in healthcare?"
+                                       class="w-full px-4 py-3 text-lg border-2 border-brand-nickel rounded-lg focus:ring-2 focus:ring-brand-lapis focus:border-brand-lapis outline-none transition duration-200 font-brand-regular"
+                                       required>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-brand-oxford mb-2 font-brand-regular">Time Frame</label>
+                                <input type="text" 
+                                       name="time_frame" 
+                                       id="time_frame"
+                                       placeholder="e.g., Next 2-5 years"
+                                       class="w-full px-4 py-3 text-lg border-2 border-brand-nickel rounded-lg focus:ring-2 focus:ring-brand-lapis focus:border-brand-lapis outline-none transition duration-200 font-brand-regular"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-brand-oxford mb-2 font-brand-regular">Region</label>
+                                <input type="text" name="region" placeholder="e.g., Global, North America, Southeast Asia"
+                                    class="w-full px-4 py-3 text-lg border-2 border-brand-nickel rounded-lg focus:ring-2 focus:ring-brand-lapis focus:border-brand-lapis outline-none transition duration-200 font-brand-regular"
+                                    required>
+                            </div>
+
+                            <div>
+                                <label for="architecture-select"
+                                    class="block text-sm font-medium text-brand-oxford mb-2 font-brand-regular">Architecture</label>
+                                <select id="architecture-select" name="architecture"
+                                    class="w-full px-4 py-3 text-lg border-2 border-brand-nickel rounded-lg focus:ring-2 focus:ring-brand-lapis focus:border-brand-lapis outline-none transition duration-200 font-brand-regular appearance-none bg-white"
+                                    style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300264B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-position: right 1rem center; background-repeat: no-repeat; background-size: 0.8em;">
+                                    <option value="sequential">Sequential</option>
+                                    <option value="parallel" selected>Parallel (Hybrid)</option>
+                                    <option value="hierarchical">Hierarchical</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-brand-oxford mb-2 font-brand-regular">Specific
+                                Instructions or Context</label>
+                            <textarea name="prompt"
+                                placeholder="Enter any specific instructions or context for the AI agents..."
+                                class="w-full px-4 py-3 text-lg border-2 border-brand-nickel rounded-lg focus:ring-2 focus:ring-brand-lapis focus:border-brand-lapis outline-none transition duration-200 font-brand-regular"
+                                rows="3"></textarea>
+                        </div>
+
+                        <div class="text-right">
+                            <button type="submit" id="submit-btn"
+                                class="bg-brand-lapis text-white font-bold px-8 py-3 text-lg rounded-lg hover:bg-brand-oxford transition duration-200 disabled:bg-brand-nickel disabled:cursor-not-allowed flex items-center justify-center font-brand-black">
+                                <span id="buttonText">Analyze Strategy</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Loading Section -->
+                <section id="loading-section" class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8 hidden">
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-brand-lapis rounded-full mb-4">
+                            <svg class="w-8 h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                                </circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-brand-oxford mb-2 font-brand-slab">Analysis in Progress</h3>
+                        <p class="text-brand-nickel font-brand-regular">Our AI agents are analyzing your strategic
+                            question. This will take approximately 2-3 minutes. Please wait...</p>
+                        <div class="mt-4">
+                            <div class="w-full bg-brand-kodama rounded-full h-2">
+                                <div id="progressBar" class="bg-brand-lapis h-2 rounded-full transition-all duration-300"
+                                    style="width: 0%"></div>
+                            </div>
+                            <p class="text-sm text-brand-nickel mt-2 font-brand-regular" id="progressText">Initializing
+                                analysis...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Results Section -->
+                <div id="resultsSection" class="space-y-6 hidden">
+                    <!-- Executive Summary -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">Executive Summary</h2>
+                        <div id="executiveSummary" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">Executive summary content will appear here...</div>
+                        </div>
+                    </section>
+
+                    <!-- Problem Analysis -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">
+                                Step 1: The Problem Explorer's Checklist ©</h2>
+                            <p class="text-lg italic text-gray-500">A Framework For Comprehensive Problem Analysis</p>
+                        </div>
+                        <div id="problemAnalysis" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">Problem analysis content
+                                will appear here...</div>
+                        </div>
+                    </section>
+
+                    <!-- Best Practices -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">
+                                Step 2: Best Practices</h2>
+                            <p class="text-lg italic text-gray-500">IDENTIFYING PROVEN STRATEGIES TO INFORM SOLUTION
+                                DESIGN</p>
+                        </div>
+                        <div id="bestPractices" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">Best practices content will
+                                appear here...</div>
+                        </div>
+                    </section>
+
+                    <!-- Future Trends -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">
+                                Step 3: Horizon Scanning</h2>
+                            <p class="text-lg italic text-gray-500">SPOTTING EARLY SIGNS OF FUTURE TRENDS</p>
+                        </div>
+                        <div id="futureTrends" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">Future trends content will
+                                appear here...</div>
+                        </div>
+                    </section>
+
+                    <!-- Scenario Analysis -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">
+                                Step 4: Scenario Planning</h2>
+                            <p class="text-lg italic text-gray-500">MAPPING POTENTIAL FUTURES TO INFORM PRESENTS
+                                DECISIONS</p>
+                        </div>
+                        <div id="scenarioAnalysis" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">Scenario analysis content
+                                will appear here...</div>
+                        </div>
+                    </section>
+
+                    <!-- Research Synthesis -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">
+                                Step 5: Research Synthesis</h2>
+                            <p class="text-lg italic text-gray-500">DISTILLING INSIGHT TO INFORM STRATEGIC PLANNING</p>
+                        </div>
+                        <div id="researchSynthesis" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">Research synthesis content
+                                will appear here...</div>
+                        </div>
+                    </section>
+
+                    <!-- Strategic Actions -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">
+                                Step 6: Strategic Action Planning</h2>
+                            <p class="text-lg italic text-gray-500">IDENTIFYING ACTIONABLE IDEAS</p>
+                        </div>
+                        <div id="strategicActions" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">Strategic actions content
+                                will appear here...</div>
+                        </div>
+                    </section>
+
+                    <!-- High Impact Initiatives -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">
+                                Step 7: High Impact Initiatives</h2>
+                            <p class="text-lg italic text-gray-500">DETAILING OF HIGH IMPACT ACTIONABLE IDEAS</p>
+                        </div>
+                        <div id="highImpact" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">High impact initiatives
+                                content will appear here...</div>
+                        </div>
+                    </section>
+
+                    <!-- Implementation Roadmap -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">
+                                Step 8: Backcasting</h2>
+                            <p class="text-lg italic text-gray-500">FUTURE TO PRESENT PLANNING</p>
+                        </div>
+                        <div id="implementationRoadmap" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">Implementation roadmap
+                                content will appear here...</div>
+                        </div>
+                    </section>
+
+                    <!-- References & Sources -->
+                    <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-brand-oxford border-b-2 border-brand-kodama pb-3 mb-4 font-brand-slab">References & Sources</h2>
+                        <div id="referencesSection" class="section-content">
+                            <div class="text-brand-nickel leading-relaxed font-brand-regular">
+                                <p class="mb-4 text-sm italic">Sources and references from Best Practices:</p>
+                                <div id="referencesList" class="space-y-3">
+                                    <p class="text-sm text-brand-nickel italic">References will appear here after analysis...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <!-- Footer -->
+
+        </div>
+    </div>
+
+    <script src="/static/js/home.js"></script>
+
+    <!-- Footer -->
+    <footer class="text-center text-lg-start pt-4 bg-white border-t border-brand-kodama mt-16">
+        <div class="container mx-auto max-w-5xl p-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-5">
+                <div class="md:col-span-2 flex justify-center md:justify-start">
+                    <img src="/static/Multiverz Logo.png" alt="Challenges.one Logo" class="h-16 w-auto">
+                </div>
+                <div class="md:col-span-10 md:border-l-2 md:border-brand-lapis md:pl-6">
+                    <p class="mb-0 text-justify text-brand-nickel font-brand-regular text-sm leading-relaxed">
+                        Challenges.one is a social impact-driven open innovation platform that harnesses collective
+                        intelligence to create meaningful change in people's lives. With a mission to positively impact
+                        at least 100,000 lives through each challenge featured on the platform, it empowers participants
+                        to think strategically about future solutions while making a tangible difference.
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                <div class="mb-4 md:mb-0">
+                    <ul class="flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 mb-0 font-brand-regular">
+                        <li><a href="/about-us"
+                                class="text-brand-nickel hover:text-brand-oxford transition duration-200 no-underline">About
+                                Us</a></li>
+                        <li><a href="/contact-us"
+                                class="text-brand-nickel hover:text-brand-oxford transition duration-200 no-underline">Contact
+                                Us</a></li>
+                        <li><a href="/terms-conditions"
+                                class="text-brand-nickel hover:text-brand-oxford transition duration-200 no-underline">Terms
+                                & Conditions</a></li>
+                        <li><a href="/privacy-policy"
+                                class="text-brand-nickel hover:text-brand-oxford transition duration-200 no-underline">Privacy
+                                Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="border-2 border-brand-lapis my-4">
+            <div class="text-center">
+                <p class="mb-0 text-brand-nickel font-brand-regular pb-5">Multiverz © 2025</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function () {
+                    const isHidden = mobileMenu.classList.contains('hidden');
+
+                    if (isHidden) {
+                        mobileMenu.classList.remove('hidden');
+                        // Change icon to X
+                        mobileMenuButton.querySelector('svg').innerHTML =
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
+                    } else {
+                        mobileMenu.classList.add('hidden');
+                        // Change icon back to hamburger
+                        mobileMenuButton.querySelector('svg').innerHTML =
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>';
+                    }
+                });
+
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', function (event) {
+                    if (!mobileMenuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
+                        mobileMenu.classList.add('hidden');
+                        mobileMenuButton.querySelector('svg').innerHTML =
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html> 

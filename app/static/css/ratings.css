@@ -1,0 +1,481 @@
+/* ===============================================
+   AGENT RATING SYSTEM STYLES
+   =============================================== */
+
+/* Simple Agent Rating System Styles - Using Brand Colors */
+/* Brand Colors: Lapis Jewel (#166697), Kodama White (#E6F1FF), Nickel (#939393), Oxford Blue (#00264B), Pervenche (#008CED) */
+
+/* Modal Overlay */
+.review-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 38, 75, 0.5); /* Oxford Blue with opacity */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    font-family: 'Roboto', sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Modal Container */
+.review-modal {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px rgba(0, 38, 75, 0.2);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative; /* Allow absolute positioning when needed */
+}
+
+/* Modal Header */
+.review-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #E6F1FF; /* Kodama White */
+}
+
+.review-modal-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #00264B; /* Oxford Blue */
+    font-family: 'Roboto Slab', serif;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #939393; /* Nickel */
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+    color: #00264B; /* Oxford Blue */
+}
+
+.modal-close svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* Modal Content */
+.review-modal-content {
+    padding: 1.5rem;
+}
+
+.review-modal-content p {
+    color: #00264B; /* Oxford Blue */
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+/* Agent Selection */
+.agent-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.agent-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid #E6F1FF; /* Kodama White */
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.agent-option:hover {
+    background-color: rgba(22, 102, 151, 0.05);
+    border-color: #166697; /* Lapis Jewel */
+}
+
+.agent-checkbox {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #166697; /* Lapis Jewel */
+    cursor: pointer;
+}
+
+.agent-name {
+    font-size: 0.875rem;
+    color: #00264B; /* Oxford Blue */
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* Review Form */
+.review-form {
+    border-top: 2px solid #e2e8f0;
+    padding-top: 2rem;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #f8fafc, #ffffff);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+    margin-bottom: 2rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'Roboto Slab', serif;
+}
+
+/* Star Rating */
+.star-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+}
+
+.star {
+    font-size: 2rem;
+    color: #cbd5e0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.star:hover,
+.star.active {
+    color: #f6ad55;
+    transform: scale(1.1);
+    filter: drop-shadow(0 2px 4px rgba(246, 173, 85, 0.4));
+}
+
+.star.filled {
+    color: #ed8936;
+    transform: scale(1.05);
+    filter: drop-shadow(0 2px 4px rgba(237, 137, 54, 0.4));
+}
+
+.rating-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-left: 1rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Controls */
+.form-textarea {
+    width: 100%;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    font-size: 1rem;
+    color: #000000;
+    background: #ffffff;
+    resize: vertical;
+    transition: all 0.3s ease;
+    font-family: 'Roboto', sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-height: 100px;
+}
+
+.form-textarea:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1), 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: white;
+    transform: translateY(-1px);
+}
+
+.form-textarea::placeholder {
+    color: #666666;
+    font-style: italic;
+}
+
+/* Modal Actions */
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #E6F1FF; /* Kodama White */
+}
+
+.btn-cancel,
+.btn-next,
+.btn-submit {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    font-family: 'Roboto', sans-serif;
+}
+
+.btn-cancel {
+    background-color: transparent;
+    color: #939393; /* Nickel */
+    border: 1px solid #E6F1FF; /* Kodama White */
+}
+
+.btn-cancel:hover {
+    background-color: rgba(147, 147, 147, 0.1);
+    color: #00264B; /* Oxford Blue */
+}
+
+.btn-next,
+.btn-submit {
+    background: linear-gradient(135deg, #166697, #008CED); /* Lapis to Pervenche */
+    color: white;
+    box-shadow: 0 2px 4px rgba(22, 102, 151, 0.2);
+}
+
+.btn-next:hover,
+.btn-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(22, 102, 151, 0.3);
+}
+
+.btn-submit:disabled {
+    background: linear-gradient(135deg, #939393, #c0c0c0);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Desktop positioning for review modal */
+@media (min-width: 769px) {
+    .review-modal-overlay {
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+    
+    .review-modal {
+        position: static; /* Allow for absolute positioning by JS */
+        width: 600px;
+        max-width: 600px;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .review-modal-overlay {
+        padding: 10px !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        padding-top: 2rem !important;
+    }
+    
+    .review-modal {
+        width: 100% !important;
+        max-width: none !important;
+        max-height: calc(100vh - 4rem) !important;
+        margin: 0 !important;
+        position: relative !important; /* Reset to relative on mobile */
+        top: auto !important;
+        left: auto !important;
+        transform: none !important;
+    }
+    
+    .agent-selection {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .btn-cancel,
+    .btn-next,
+    .btn-submit {
+        width: 100%;
+    }
+    
+    .review-modal-header {
+        padding: 1rem;
+    }
+    
+    .review-modal-content {
+        padding: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .star-rating {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .star {
+        font-size: 1.75rem;
+    }
+}
+
+/* Remove old unused styles */
+#progressContainer .review-agent-btn,
+.fixed .review-agent-btn,
+.progress-container .review-agent-btn,
+.review-agent-btn,
+.rating-container,
+.rating-form-horizontal,
+.helpful-aspects,
+.recommendation-toggle {
+    display: none !important;
+}
+
+/* Focus states for accessibility */
+.agent-option:focus,
+.form-textarea:focus,
+.btn-submit:focus,
+.btn-cancel:focus,
+.btn-next:focus {
+    outline: 2px solid #166697; /* Lapis Jewel */
+    outline-offset: 2px;
+}
+
+/* Success Message Popup */
+.success-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+    padding: 2rem 3rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    z-index: 1100;
+    text-align: center;
+    min-width: 300px;
+    animation: successPopup 0.5s ease-out;
+}
+
+.success-popup-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.success-popup-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-family: 'Roboto Slab', serif;
+}
+
+.success-popup-message {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+@keyframes successPopup {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.success-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1099;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .rating-container {
+        background: #1f2937;
+        border-color: #374151;
+    }
+    
+    .rating-title {
+        color: #f9fafb;
+    }
+    
+    .rating-toggle {
+        color: #d1d5db;
+    }
+    
+    .rating-toggle:hover {
+        background-color: #374151;
+        color: #f3f4f6;
+    }
+    
+    .rating-form,
+    .rating-summary,
+    .rating-distribution {
+        background: #111827;
+        border-color: #374151;
+    }
+    
+    .form-textarea {
+        background: #ffffff;
+        border-color: #4b5563;
+        color: #000000;
+    }
+    
+    .form-label,
+    .distribution-title {
+        color: #000000;
+    }
+    
+    .aspect-checkbox {
+        background: #111827;
+        border-color: #4b5563;
+    }
+    
+    .aspect-checkbox:hover {
+        background: #1f2937;
+    }
+    
+    .aspect-label {
+        color: #d1d5db;
+    }
+} 

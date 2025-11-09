@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - challenges.one</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --lapis-jewel: #166697;
+            --kodama-white: #E6F1FF;
+            --nickel: #939393;
+            --oxford-blue: #00264B;
+            --pervenche: #008CED;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--oxford-blue) 0%, var(--lapis-jewel) 50%, var(--pervenche) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .signup-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            max-width: 1200px;
+            width: 100%;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 38, 75, 0.15);
+            overflow: hidden;
+            min-height: 700px;
+        }
+        
+        .signup-form-section {
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        
+        .logo-section {
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .logo img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+        
+        .logo-text {
+            font-family: 'Roboto Slab', serif;
+            font-weight: 700;
+            font-size: 28px;
+            color: var(--oxford-blue);
+        }
+        
+        .tagline {
+            font-family: 'Roboto', sans-serif;
+            color: var(--nickel);
+            font-size: 14px;
+            margin-left: 65px;
+        }
+        
+        .form-header {
+            margin-bottom: 40px;
+        }
+        
+        .form-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 900;
+            font-size: 32px;
+            color: var(--oxford-blue);
+            margin-bottom: 8px;
+        }
+        
+        .form-subtitle {
+            color: var(--nickel);
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 700;
+            color: var(--oxford-blue);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--kodama-white);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: var(--white);
+            color: var(--oxford-blue);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--pervenche);
+            box-shadow: 0 0 0 3px rgba(0, 140, 237, 0.1);
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--nickel);
+            font-size: 18px;
+        }
+        
+        .password-requirements {
+            font-size: 12px;
+            color: var(--nickel);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+        
+        .strength-indicator {
+            margin-top: 8px;
+            height: 4px;
+            background: var(--kodama-white);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .strength-weak { 
+            background: #e74c3c; 
+            width: 33%;
+        }
+        
+        .strength-medium { 
+            background: #f39c12; 
+            width: 66%;
+        }
+        
+        .strength-strong { 
+            background: #27ae60; 
+            width: 100%;
+        }
+        
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        
+        .terms-checkbox input[type="checkbox"] {
+            margin-top: 4px;
+            transform: scale(1.2);
+            accent-color: var(--pervenche);
+        }
+        
+        .terms-text {
+            font-size: 14px;
+            color: var(--nickel);
+            line-height: 1.5;
+        }
+        
+        .terms-text a {
+            color: var(--lapis-jewel);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        
+        .terms-text a:hover {
+            color: var(--pervenche);
+        }
+        
+        .signup-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--lapis-jewel) 0%, var(--pervenche) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 900;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+        }
+        
+        .signup-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(22, 102, 151, 0.3);
+        }
+        
+        .signup-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .login-link {
+            text-align: center;
+            color: var(--nickel);
+            font-size: 14px;
+        }
+        
+        .login-link a {
+            color: var(--lapis-jewel);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        
+        .login-link a:hover {
+            color: var(--pervenche);
+        }
+        
+        .visual-section {
+            background: linear-gradient(135deg, var(--kodama-white) 0%, rgba(22, 102, 151, 0.1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .visual-content {
+            text-align: center;
+            z-index: 2;
+        }
+        
+        .visual-title {
+            font-family: 'Roboto Slab', serif;
+            font-weight: 700;
+            font-size: 36px;
+            color: var(--oxford-blue);
+            margin-bottom: 20px;
+        }
+        
+        .visual-subtitle {
+            font-size: 18px;
+            color: var(--lapis-jewel);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin-bottom: 40px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            color: var(--oxford-blue);
+            font-size: 16px;
+        }
+        
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--pervenche);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .visual-graphic {
+            width: 100%;
+            max-width: 300px;
+            height: 200px;
+            background: var(--white);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(22, 102, 151, 0.1);
+        }
+        
+        .graphic-placeholder {
+            color: var(--nickel);
+            font-size: 48px;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid #f5c6cb;
+            font-size: 14px;
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+        
+        @media (max-width: 768px) {
+            .signup-container {
+                grid-template-columns: 1fr;
+                margin: 20px;
+            }
+            
+            .visual-section {
+                display: none;
+            }
+            
+            .signup-form-section {
+                padding: 40px 30px;
+            }
+            
+            .form-title {
+                font-size: 28px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .signup-form-section {
+                padding: 30px 20px;
+            }
+            
+            .logo-text {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-form-section">
+            <div class="logo-section">
+                <div class="logo">
+                    <img src="{{ url_for('static', path='Multiverz Logo.png') }}" alt="challenges.one Logo">
+                    <span class="logo-text">challenges.one</span>
+                </div>
+                <div class="tagline">Strategic Intelligence Platform</div>
+            </div>
+            
+            <div class="form-header">
+                <h1 class="form-title">Join Us</h1>
+                <p class="form-subtitle">Create your account to start leveraging strategic intelligence</p>
+            </div>
+            
+            {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <form method="post" action="/signup" id="signupForm">
+                <div class="form-group">
+                    <label for="full_name" class="form-label">
+                        Full Name
+                    </label>
+                    <input type="text" name="full_name" id="full_name" class="form-input" placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        Username <span class="required">*</span>
+                    </label>
+                    <input type="text" name="username" id="username" class="form-input" placeholder="Choose a unique username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        Email Address <span class="required">*</span>
+                    </label>
+                    <input type="email" name="email" id="email" class="form-input" placeholder="Enter your email address" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        Password <span class="required">*</span>
+                    </label>
+                    <div class="password-container">
+                        <input type="password" name="password" id="password" class="form-input" placeholder="Create a secure password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <span id="eyeIcon">👁️</span>
+                        </button>
+                    </div>
+                    <div class="strength-indicator">
+                        <div class="strength-bar" id="strengthBar"></div>
+                    </div>
+                    <div class="password-requirements">
+                        Password should be at least 8 characters with uppercase, lowercase, number, and special character.
+                    </div>
+                </div>
+                
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <label for="terms" class="terms-text">
+                        I agree to the <a href="#" onclick="alert('Terms of Service coming soon!')">Terms of Service</a> and 
+                        <a href="#" onclick="alert('Privacy Policy coming soon!')">Privacy Policy</a>
+                    </label>
+                </div>
+                
+                <button type="submit" class="signup-button" id="submitBtn">
+                    CREATE ACCOUNT
+                </button>
+            </form>
+            
+            <div class="login-link">
+                Already have an account? <a href="/login">Sign in here</a>
+            </div>
+        </div>
+        
+        <div class="visual-section">
+            <div class="visual-content">
+                <h2 class="visual-title">Start Your Journey</h2>
+                <p class="visual-subtitle">Join thousands of professionals using strategic intelligence to drive success.</p>
+                
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon">📊</div>
+                        <span>Advanced Analytics & Insights</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🎯</div>
+                        <span>Strategic Planning Tools</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔮</div>
+                        <span>Future Scenario Modeling</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🤝</div>
+                        <span>Collaborative Workspace</span>
+                    </div>
+                </div>
+                
+                <div class="visual-graphic">
+                    <div class="graphic-placeholder">🚀</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="text-center text-lg-start pt-4 bg-white border-t border-gray-200 mt-16">
+        <div class="container mx-auto max-w-5xl p-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-5">
+                <div class="md:col-span-2 flex justify-center md:justify-start">
+                    <img src="{{ url_for('static', path='Multiverz Logo.png') }}" alt="Challenges.one Logo" class="h-16 w-auto">
+                </div>
+                <div class="md:col-span-10 md:border-l-2 border-blue-600 md:pl-6">
+                    <p class="mb-0 text-justify text-gray-600 text-sm leading-relaxed">
+                        Challenges.one is a social impact-driven open innovation platform that harnesses collective intelligence to create meaningful change in people's lives. With a mission to positively impact at least 100,000 lives through each challenge featured on the platform, it empowers participants to think strategically about future solutions while making a tangible difference.
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                <div class="mb-4 md:mb-0">
+                    <ul class="flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 mb-0">
+                        <li><a href="/about-us" class="text-gray-600 hover:text-gray-800 transition duration-200 no-underline">About Us</a></li>
+                        <li><a href="/contact-us" class="text-gray-600 hover:text-gray-800 transition duration-200 no-underline">Contact Us</a></li>
+                        <li><a href="/terms-conditions" class="text-gray-600 hover:text-gray-800 transition duration-200 no-underline">Terms & Conditions</a></li>
+                        <li><a href="/privacy-policy" class="text-gray-600 hover:text-gray-800 transition duration-200 no-underline">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="border-2 border-blue-600 my-4">
+            <div class="text-center">
+                <p class="mb-0 text-gray-600 pb-5">Multiverz © 2025</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.textContent = '🙈';
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.textContent = '👁️';
+            }
+        }
+        
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const strengthBar = document.getElementById('strengthBar');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            let strength = 0;
+            
+            // Check password criteria
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            // Update strength indicator
+            strengthBar.className = 'strength-bar';
+            if (strength <= 2) {
+                strengthBar.classList.add('strength-weak');
+            } else if (strength <= 4) {
+                strengthBar.classList.add('strength-medium');
+            } else {
+                strengthBar.classList.add('strength-strong');
+            }
+            
+            // Enable/disable submit button based on form validity
+            const form = document.getElementById('signupForm');
+            const isValid = form.checkValidity() && document.getElementById('terms').checked;
+            submitBtn.disabled = !isValid;
+        }
+        
+        // Add event listeners
+        document.getElementById('password').addEventListener('input', checkPasswordStrength);
+        document.getElementById('terms').addEventListener('change', checkPasswordStrength);
+        document.getElementById('username').addEventListener('input', checkPasswordStrength);
+        document.getElementById('email').addEventListener('input', checkPasswordStrength);
+        
+        // Initial check
+        checkPasswordStrength();
+    </script>
+</body>
+</html> 
