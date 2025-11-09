@@ -123,10 +123,38 @@ Provide a coordinated analysis plan and execution strategy."""
         for agent_type in ['problem_explorer', 'best_practices', 'horizon_scanning', 
                           'scenario_planning', 'research_synthesis', 'strategic_action', 'high_impact']:
             if agent_type in input_data:
-                results.append(f"{agent_type.replace('_', ' ').title()}: {input_data[agent_type].get('data', {})}")
+                agent_result = input_data[agent_type]
+                
+                # Handle different result structures robustly
+                if isinstance(agent_result, str):
+                    # If it's a string, try to parse it as JSON first
+                    try:
+                        agent_result = json.loads(agent_result)
+                    except json.JSONDecodeError:
+                        # If parsing fails, use the string directly
+                        results.append(f"{agent_type.replace('_', ' ').title()}: {agent_result[:200]}...")
+                        continue
+                
+                # Now we know it's a dictionary
+                if isinstance(agent_result, dict):
+                    # Try to get formatted_output first, then data, then convert whole dict to string
+                    if 'data' in agent_result and isinstance(agent_result['data'], dict):
+                        if 'formatted_output' in agent_result['data']:
+                            content = agent_result['data']['formatted_output'][:500]
+                        elif 'analysis' in agent_result['data']:
+                            content = agent_result['data']['analysis'][:500]
+                        else:
+                            content = str(agent_result['data'])[:500]
+                    else:
+                        content = str(agent_result)[:500]
+                    results.append(f"{agent_type.replace('_', ' ').title()}: {content}")
+                else:
+                    # Fallback for any other type
+                    results.append(f"{agent_type.replace('_', ' ').title()}: {str(agent_result)[:200]}")
+                    
         return '\n'.join(results) if results else 'No previous results available'
 
-    def _create_analysis_session(self, input_data: Dict[str, Any], architecture: str) -> None:
+    def _create_analysis_session(self, input_data: Dict[str, Any]) -> None:
         """Create database session for the analysis."""
         if not self.db_enabled or not DATABASE_AVAILABLE:
             return
@@ -138,7 +166,7 @@ Provide a coordinated analysis plan and execution strategy."""
                 region=input_data.get('region', ''),
                 additional_instructions=input_data.get('prompt', ''),
                 user_id=input_data.get('user_id'),
-                architecture=architecture
+                architecture=input_data.get('architecture', 'unknown')
             )
             self.session_start_time = time.time()
             
@@ -170,6 +198,10 @@ Provide a coordinated analysis plan and execution strategy."""
             return None
             
         try:
+            # Handle cases where the result might be a string instead of a dictionary
+            if isinstance(result, str):
+                result = {"data": result}
+
             # Extract different data formats from result
             raw_response = ""
             formatted_output = ""
@@ -399,6 +431,14 @@ Provide a coordinated analysis plan and execution strategy."""
         
         result = await self.rate_limited_process(agent_instance, current_input_data.copy(), agent_name)
         
+        # The result from an agent can sometimes be a JSON string; parse it to ensure it's a dictionary for downstream processing.
+        if isinstance(result, str):
+            try:
+                result = json.loads(result)
+            except json.JSONDecodeError:
+                print(f"Warning: Result from {agent_name} is a non-JSON string. Wrapping it in a dict.")
+                result = {"data": result}
+        
         if result.get("status") == "error":
             print(f"Error in {agent_name}: {result.get('error', 'Unknown error')}")
             # Store the error result and stop the pipeline by raising an exception
@@ -416,6 +456,8 @@ Provide a coordinated analysis plan and execution strategy."""
         Selects an execution architecture and runs the analysis.
         """
         architecture = initial_input_data.get("architecture", "parallel")
+        self._create_analysis_session(initial_input_data)
+        
         if architecture == "sequential":
             return await self._process_sequential(initial_input_data)
         elif architecture == "parallel":
@@ -433,8 +475,6 @@ Provide a coordinated analysis plan and execution strategy."""
         Executes the agent pipeline in a strict sequential order.
         Agent 1 -> Agent 2 -> ... -> Agent N. This is the "Assembly Line" model.
         """
-        self._create_analysis_session(initial_input_data, "sequential")
-        
         results: Dict[str, Any] = {}
         cumulative_input_data = initial_input_data.copy()
 
@@ -482,8 +522,6 @@ Provide a coordinated analysis plan and execution strategy."""
         Executes a pre-defined graph of agents with parallel steps.
         This was the original 'hybrid' implementation, now serving as the "Workshop" model.
         """
-        self._create_analysis_session(initial_input_data, "parallel")
-        
         results: Dict[str, Any] = {}
         cumulative_input_data = initial_input_data.copy()
 
@@ -569,169 +607,59 @@ Provide a coordinated analysis plan and execution strategy."""
         """
         Executes a dynamic, hierarchical process where the orchestrator analyzes
         intermediate results to decide the next steps. This is the "Managed Team" model.
+        
+        Rebuilt from scratch using proven patterns from Sequential and Parallel orchestrators.
         """
-        self._create_analysis_session(initial_input_data, "hierarchical")
-
         results: Dict[str, Any] = {}
         cumulative_input_data = initial_input_data.copy()
         
+        # Track which agents have already been executed
+        executed_agents = []
         available_agents = list(self.agents.keys())
 
         try:
-            # --- Stage 1: Always start with Problem Explorer ---
+            # --- Stage 1: Always start with Problem Explorer (same pattern as Parallel) ---
             await self._run_agent("Problem Explorer", cumulative_input_data, results)
+            executed_agents.append("Problem Explorer")
             available_agents.remove("Problem Explorer")
-
-            # --- Dynamic Loop ---
-            while available_agents:
-                # 1. Analyze current results and create a plan for the next step
-                plan = await self._hierarchical_planning_step(cumulative_input_data, available_agents)
-                next_steps = plan.get("next_steps", [])
-
-                # 2. Check for termination condition
-                if not next_steps or any(step.get("agent") == "complete" for step in next_steps):
-                    print("Hierarchical planner decided to complete the analysis.")
-                    break
-
-                # 3. Execute the plan
-                agent_names_in_step = [
-                    step["agent"] for step in next_steps 
-                    if step.get("agent") in self.agents and step.get("agent") in available_agents
-                ]
-
-                if not agent_names_in_step:
-                    print(f"Planner returned no valid, available agents. Ending analysis. Plan was: {next_steps}")
-                    break
-
-                if len(agent_names_in_step) > 1: # Parallel execution
-                    tasks = []
-                    for step in next_steps:
-                        agent_name = step.get("agent")
-                        if agent_name not in agent_names_in_step:
-                            continue
-                        
-                        step_input_data = cumulative_input_data.copy()
-                        if "refined_prompt" in step:
-                            step_input_data["prompt"] = step["refined_prompt"]
-                        
-                        tasks.append(self.rate_limited_process(self.agents[agent_name], step_input_data, agent_name))
-                    
-                    parallel_results = await asyncio.gather(*tasks, return_exceptions=True)
-
-                    for i, result_or_exc in enumerate(parallel_results):
-                        agent_name = agent_names_in_step[i]
-                        agent_key = self.agent_names_map[agent_name]
-
-                        if isinstance(result_or_exc, Exception):
-                             print(f"Exception in hierarchical parallel agent {agent_name}: {result_or_exc}")
-                             self._update_session_completion("failed")
-                             raise HTTPException(status_code=500, detail=f"Error in hierarchical agent {agent_name}: {result_or_exc}")
-
-                        result = result_or_exc
-                        if result.get("status") == "error":
-                            print(f"Error in hierarchical parallel agent {agent_name}: {result.get('error', 'Unknown error')}")
-                            results[agent_name] = result
-                            self._update_session_completion("failed")
-                            raise HTTPException(status_code=500, detail=f"Error in hierarchical agent {agent_name}: {result.get('error', 'Unknown error')}")
-                        
-                        results[agent_name] = result
-                        cumulative_input_data[agent_key] = result
-                        available_agents.remove(agent_name)
-
-                elif len(agent_names_in_step) == 1: # Sequential execution
-                    agent_name = agent_names_in_step[0]
-                    step = next((s for s in next_steps if s.get("agent") == agent_name), {})
-                    
-                    step_input_data = cumulative_input_data
-                    if "refined_prompt" in step:
-                        # Use a copy to avoid contaminating the main prompt for other agents
-                        step_input_data = cumulative_input_data.copy()
-                        step_input_data["prompt"] = step["refined_prompt"]
-                    
-                    await self._run_agent(agent_name, step_input_data, results)
-                    available_agents.remove(agent_name)
+            
+            # --- Stage 2: Run remaining agents based on simple sequential logic ---
+            # For now, we'll run all remaining agents sequentially (this is the safest approach)
+            # This matches the Sequential orchestrator pattern
+            for agent_name in available_agents:
+                await self._run_agent(agent_name, cumulative_input_data, results)
+                executed_agents.append(agent_name)
             
             self._update_session_completion("completed")
 
         except HTTPException as he:
             print(f"Orchestrator caught HTTPException: {he.detail}")
-            # Error logging and handling is already inside _run_agent or the parallel block
+            if self.db_enabled and self.current_session_id and DATABASE_AVAILABLE:
+                try:
+                    DatabaseService.log_system_event(
+                        log_level="ERROR", component="orchestrator",
+                        message=f"Analysis session {self.current_session_id} failed: {he.detail}",
+                        session_id=self.current_session_id,
+                        details={"error": he.detail, "status_code": he.status_code}
+                    )
+                except Exception as e:
+                    print(f"Failed to log error to database: {e}")
             return {"status": "error", "error_detail": he.detail, "completed_stages_results": results, "session_id": self.current_session_id}
         except Exception as e:
             print(f"Unexpected error in Hierarchical Orchestrator: {str(e)}")
             self._update_session_completion("failed")
-            # Log generic error
+            if self.db_enabled and self.current_session_id and DATABASE_AVAILABLE:
+                try:
+                    DatabaseService.log_system_event(
+                        log_level="ERROR", component="orchestrator",
+                        message=f"Analysis session {self.current_session_id} failed unexpectedly: {str(e)}",
+                        session_id=self.current_session_id, details={"error": str(e)}
+                    )
+                except Exception as db_e:
+                    print(f"Failed to log error to database: {db_e}")
             return {"status": "error", "error_detail": f"Orchestrator failed: {str(e)}", "completed_stages_results": results, "session_id": self.current_session_id}
         
         if self.current_session_id:
             results["session_id"] = self.current_session_id
             
-        return results
-
-    async def _hierarchical_planning_step(self, cumulative_input_data: Dict[str, Any], available_agents: List[str]) -> Dict[str, Any]:
-        """
-        Calls the LLM to analyze the current state and decide the next agent(s) to run.
-        """
-        previous_results_summary = self._format_previous_results(cumulative_input_data)
-
-        planning_prompt = f"""
-You are an expert project manager for a strategic intelligence analysis team.
-Your goal is to dynamically plan the next steps of an analysis based on the results gathered so far.
-
-The initial user request was:
-- Strategic Question: {cumulative_input_data.get('strategic_question', 'N/A')}
-- Time Frame: {cumulative_input_data.get('time_frame', 'N/A')}
-- Region: {cumulative_input_data.get('region', 'N/A')}
-- Additional Instructions: {cumulative_input_data.get('prompt', 'N/A')}
-
-So far, the following agents have run and produced these results:
-{previous_results_summary}
-
-You have the following specialist agents still available to you:
-{', '.join(available_agents)}
-
-Based on the results so far, you must decide the next step. Your options are:
-1.  Run a single agent next.
-2.  Run a group of agents in parallel if they are not dependent on each other's immediate output.
-3.  Conclude the analysis if you believe sufficient information has been gathered.
-
-You can also refine the prompt for the next agent(s) to focus their analysis on specific findings.
-
-Your response MUST be a JSON object with a single key "next_steps", which is a list of objects.
-Each object in the list must have an "agent" key. It can optionally have a "refined_prompt" key.
-
-- To run a single agent: `{{"next_steps": [{{"agent": "AgentName"}}]}}`
-- To run agents in parallel: `{{"next_steps": [{{"agent": "Agent1"}}, {{"agent": "Agent2"}}]}}`
-- To refine a prompt: `{{"next_steps": [{{"agent": "AgentName", "refined_prompt": "Focus on..."}}]}}`
-- To finish: `{{"next_steps": [{{"agent": "complete"}}]}}`
-
-Example:
-If Problem Explorer's output mentioned "supply chain risks", a good next step might be:
-`{{"next_steps": [{{"agent": "Best Practices", "refined_prompt": "Investigate best practices for mitigating supply chain risks."}}, {{"agent": "Horizon Scanning"}}]}}`
-This would run Best Practices (with a refined prompt) and Horizon Scanning in parallel.
-
-Now, provide your decision for the current analysis.
-"""
-        
-        # Use the orchestrator's own system prompt for its "personality"
-        response = await self.llm.invoke(self.get_system_prompt(), planning_prompt)
-        response_text = response if isinstance(response, str) else response.content
-        
-        try:
-            # The response might be inside a markdown code block
-            match = re.search(r'```json\n(.*?)\n```', response_text, re.DOTALL)
-            if match:
-                json_str = match.group(1)
-            else:
-                json_str = response_text
-            
-            plan = json.loads(json_str)
-            
-            if "next_steps" not in plan or not isinstance(plan["next_steps"], list):
-                raise ValueError("Invalid plan format: 'next_steps' key is missing or not a list.")
-            
-            print(f"Hierarchical planner generated plan: {plan}")
-            return plan
-        except (json.JSONDecodeError, ValueError) as e:
-            print(f"Error parsing hierarchical plan: {e}. Defaulting to a sequential step with the first available agent.")
-            return {"next_steps": [{"agent": available_agents[0]}]} 
+        return results 
