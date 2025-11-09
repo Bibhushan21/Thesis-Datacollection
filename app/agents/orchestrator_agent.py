@@ -55,7 +55,7 @@ class OrchestratorAgent(BaseAgent):
             "Backcasting": BackcastingAgent()
         }
         self.last_request_time = 0
-        self.min_request_interval = 2.0  # Minimum time between requests in seconds
+        self.min_request_interval = 7.0  # Minimum time between requests (adjusted for 10 RPM API limit)
         self.max_retries = 3
         self.base_delay = 1.0  # Base delay for exponential backoff
         
@@ -519,56 +519,66 @@ Provide a coordinated analysis plan and execution strategy."""
 
     async def _process_parallel(self, initial_input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Executes a pre-defined graph of agents with parallel steps.
-        This was the original 'hybrid' implementation, now serving as the "Workshop" model.
+        PURE PARALLEL ARCHITECTURE: Maximum parallelization.
+        
+        Runs Problem Explorer first (foundation), then ALL remaining agents in parallel.
+        Optimized for speed with careful rate limiting to respect API constraints.
         """
         results: Dict[str, Any] = {}
         cumulative_input_data = initial_input_data.copy()
 
         try:
-            # --- Stage 1: Problem Explorer (Sequential) ---
+            # --- Stage 1: Problem Explorer (Foundation) ---
+            print("Parallel: Starting with Problem Explorer")
             await self._run_agent("Problem Explorer", cumulative_input_data, results)
 
-            # --- Stage 2: Best Practices, Horizon Scanning, Scenario Planning (Parallel) ---
-            agent_bp_name = "Best Practices"
-            agent_hs_name = "Horizon Scanning"
-            agent_sp_name = "Scenario Planning"
-
-            input_for_stage2 = cumulative_input_data.copy() 
-
-            bp_task = self.rate_limited_process(self.agents[agent_bp_name], input_for_stage2, agent_bp_name)
-            hs_task = self.rate_limited_process(self.agents[agent_hs_name], input_for_stage2, agent_hs_name)
-            sp_task = self.rate_limited_process(self.agents[agent_sp_name], input_for_stage2, agent_sp_name)
+            # --- Stage 2: ALL Remaining Agents in Pure Parallel ---
+            remaining_agents = [
+                "Best Practices",
+                "Horizon Scanning", 
+                "Scenario Planning",
+                "Research Synthesis",
+                "Strategic Action",
+                "High Impact",
+                "Backcasting"
+            ]
             
-            stage2_results_list = await asyncio.gather(bp_task, hs_task, sp_task, return_exceptions=True)
-                
-            parallel_agent_names = [agent_bp_name, agent_hs_name, agent_sp_name]
-            for i, result_or_exc in enumerate(stage2_results_list):
-                agent_name = parallel_agent_names[i]
+            print(f"Parallel: Launching {len(remaining_agents)} agents in parallel")
+            
+            # Create all tasks with the same input (Problem Explorer context)
+            input_for_parallel = cumulative_input_data.copy()
+            
+            # Launch all agents simultaneously
+            tasks = [
+                self.rate_limited_process(self.agents[agent_name], input_for_parallel, agent_name)
+                for agent_name in remaining_agents
+            ]
+            
+            # Wait for all to complete
+            parallel_results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Process results
+            for i, result_or_exc in enumerate(parallel_results):
+                agent_name = remaining_agents[i]
                 agent_key = self.agent_names_map[agent_name]
 
                 if isinstance(result_or_exc, Exception):
                     print(f"Exception in parallel agent {agent_name}: {str(result_or_exc)}")
                     results[agent_name] = {"status": "error", "error": str(result_or_exc), "agent_type": agent_name}
                     self._update_session_completion("failed")
-                    raise HTTPException(status_code=500, detail=f"Error in {agent_name} (parallel stage): {str(result_or_exc)}")
+                    raise HTTPException(status_code=500, detail=f"Error in {agent_name}: {str(result_or_exc)}")
                 
                 result = result_or_exc
                 if result.get("status") == "error":
                     print(f"Error in parallel agent {agent_name}: {result.get('error', 'Unknown error')}")
                     results[agent_name] = result
                     self._update_session_completion("failed")
-                    raise HTTPException(status_code=500, detail=f"Error in {agent_name} (parallel stage): {result.get('error', 'Unknown error')}")
+                    raise HTTPException(status_code=500, detail=f"Error in {agent_name}: {result.get('error', 'Unknown error')}")
 
                 results[agent_name] = result
                 cumulative_input_data[agent_key] = result
-
-            # --- Stage 3-6: Remaining agents (Sequential) ---
-            await self._run_agent("Research Synthesis", cumulative_input_data, results)
-            await self._run_agent("Strategic Action", cumulative_input_data, results)
-            await self._run_agent("High Impact", cumulative_input_data, results)
-            await self._run_agent("Backcasting", cumulative_input_data, results)
-
+            
+            print("Parallel: All agents completed successfully")
             self._update_session_completion("completed")
 
         except HTTPException as he:
