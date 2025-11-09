@@ -605,30 +605,61 @@ Provide a coordinated analysis plan and execution strategy."""
 
     async def _process_hierarchical(self, initial_input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Executes a dynamic, hierarchical process where the orchestrator analyzes
-        intermediate results to decide the next steps. This is the "Managed Team" model.
+        TRUE Hierarchical Architecture: Dynamic, LLM-driven agent orchestration.
         
-        Rebuilt from scratch using proven patterns from Sequential and Parallel orchestrators.
+        The orchestrator analyzes results after each step and intelligently decides
+        which agents to run next, potentially skipping some or changing the order.
         """
         results: Dict[str, Any] = {}
         cumulative_input_data = initial_input_data.copy()
         
-        # Track which agents have already been executed
+        # Track which agents have been executed
         executed_agents = []
         available_agents = list(self.agents.keys())
 
         try:
-            # --- Stage 1: Always start with Problem Explorer (same pattern as Parallel) ---
+            # --- Stage 1: Always start with Problem Explorer ---
+            print("Hierarchical: Starting with Problem Explorer")
             await self._run_agent("Problem Explorer", cumulative_input_data, results)
             executed_agents.append("Problem Explorer")
             available_agents.remove("Problem Explorer")
             
-            # --- Stage 2: Run remaining agents based on simple sequential logic ---
-            # For now, we'll run all remaining agents sequentially (this is the safest approach)
-            # This matches the Sequential orchestrator pattern
-            for agent_name in available_agents:
-                await self._run_agent(agent_name, cumulative_input_data, results)
-                executed_agents.append(agent_name)
+            # --- Stage 2: Dynamic Loop with LLM-based planning ---
+            max_iterations = 10  # Safety limit to prevent infinite loops
+            iteration = 0
+            
+            while available_agents and iteration < max_iterations:
+                iteration += 1
+                print(f"\nHierarchical: Planning iteration {iteration}")
+                print(f"Executed agents: {executed_agents}")
+                print(f"Available agents: {available_agents}")
+                
+                # Ask LLM to decide what to do next
+                next_agent_decision = await self._hierarchical_decide_next_agent(
+                    cumulative_input_data, 
+                    available_agents,
+                    executed_agents
+                )
+                
+                # Check if the planner wants to stop
+                if next_agent_decision == "COMPLETE":
+                    print("Hierarchical: Planner decided analysis is complete")
+                    break
+                
+                # Validate the agent exists and is available
+                if next_agent_decision not in available_agents:
+                    print(f"Hierarchical: Planner suggested unavailable agent '{next_agent_decision}', ending loop")
+                    break
+                
+                # Execute the chosen agent
+                print(f"Hierarchical: Executing {next_agent_decision}")
+                await self._run_agent(next_agent_decision, cumulative_input_data, results)
+                executed_agents.append(next_agent_decision)
+                available_agents.remove(next_agent_decision)
+            
+            # If we still have available agents but hit the iteration limit, log it
+            if available_agents and iteration >= max_iterations:
+                print(f"Hierarchical: Reached max iterations. Remaining agents: {available_agents}")
             
             self._update_session_completion("completed")
 
@@ -662,4 +693,84 @@ Provide a coordinated analysis plan and execution strategy."""
         if self.current_session_id:
             results["session_id"] = self.current_session_id
             
-        return results 
+        return results
+    
+    async def _hierarchical_decide_next_agent(
+        self, 
+        cumulative_input_data: Dict[str, Any], 
+        available_agents: List[str],
+        executed_agents: List[str]
+    ) -> str:
+        """
+        Uses LLM to intelligently decide which agent to run next based on results so far.
+        Returns the agent name to run next, or "COMPLETE" if analysis should end.
+        """
+        # Format previous results using our robust formatter
+        previous_results = self._format_previous_results(cumulative_input_data)
+        
+        planning_prompt = f"""You are an expert strategic analysis manager coordinating a team of AI agents.
+
+CONTEXT:
+Strategic Question: {cumulative_input_data.get('strategic_question', 'N/A')}
+Time Frame: {cumulative_input_data.get('time_frame', 'N/A')}
+Region: {cumulative_input_data.get('region', 'N/A')}
+
+AGENTS ALREADY EXECUTED:
+{', '.join(executed_agents)}
+
+RESULTS SO FAR:
+{previous_results}
+
+AVAILABLE AGENTS:
+{', '.join(available_agents)}
+
+AGENT DESCRIPTIONS:
+- Best Practices: Researches proven solutions and industry standards
+- Horizon Scanning: Identifies emerging trends and weak signals
+- Scenario Planning: Develops multiple future scenarios
+- Research Synthesis: Integrates findings from multiple agents
+- Strategic Action: Recommends specific actions and interventions
+- High Impact: Identifies high-leverage initiatives
+- Backcasting: Works backward from desired future to present
+
+YOUR TASK:
+Based on the results gathered so far, decide which ONE agent should run next to provide the most value.
+Consider:
+1. What information gaps remain?
+2. What would be most useful for the strategic question?
+3. What logical sequence makes sense?
+
+RESPOND WITH ONLY ONE OF:
+- The exact name of one agent from the available list (e.g., "Best Practices")
+- "COMPLETE" if you believe sufficient analysis has been done
+
+Your response (just the agent name or COMPLETE):"""
+
+        try:
+            # Call LLM
+            response = await self.llm.invoke(self.get_system_prompt(), planning_prompt)
+            response_text = response if isinstance(response, str) else response.content
+            
+            # Clean up the response
+            decision = response_text.strip()
+            
+            # Remove any markdown formatting
+            decision = decision.replace('```', '').replace('json', '').strip()
+            
+            # Remove quotes if present
+            if decision.startswith('"') and decision.endswith('"'):
+                decision = decision[1:-1]
+            if decision.startswith("'") and decision.endswith("'"):
+                decision = decision[1:-1]
+            
+            print(f"Hierarchical Planner Decision: {decision}")
+            return decision
+            
+        except Exception as e:
+            print(f"Error in hierarchical planning: {str(e)}")
+            # Fallback: return the first available agent
+            if available_agents:
+                fallback = available_agents[0]
+                print(f"Falling back to first available agent: {fallback}")
+                return fallback
+            return "COMPLETE" 
