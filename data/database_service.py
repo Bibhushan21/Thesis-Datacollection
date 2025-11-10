@@ -134,7 +134,15 @@ class DatabaseService:
             session.refresh(agent_result)
             
             logger.info(f"Saved result for agent {agent_name} in session {session_id}")
-            return agent_result.id
+            result_id = agent_result.id
+            
+            # Update agent performance metrics after saving result
+            try:
+                DatabaseService.update_agent_performance_metrics(agent_name)
+            except Exception as perf_error:
+                logger.warning(f"Failed to update performance metrics for {agent_name}: {str(perf_error)}")
+            
+            return result_id
             
         except Exception as e:
             session.rollback()
@@ -438,6 +446,188 @@ class DatabaseService:
             
         except Exception as e:
             logger.error(f"Failed to get agent performance stats: {str(e)}")
+            return []
+        finally:
+            close_db_session(session)
+    
+    @staticmethod
+    def update_agent_performance_metrics(agent_name: str) -> bool:
+        """
+        Update the agent_performance table with aggregated metrics for a specific agent.
+        This method calculates performance metrics from agent_results and stores them in agent_performance.
+        """
+        session = get_db_session()
+        try:
+            # Get all results for this agent (you can add date filtering if needed)
+            results = session.query(AgentResult).filter(
+                AgentResult.agent_name == agent_name
+            ).all()
+            
+            if not results:
+                logger.info(f"No results found for agent {agent_name}, skipping performance update")
+                return True
+            
+            # Calculate metrics
+            total_executions = len(results)
+            successful_executions = sum(1 for r in results if r.status == 'completed')
+            failed_executions = sum(1 for r in results if r.status == 'failed')
+            timeout_executions = sum(1 for r in results if r.status == 'timeout')
+            
+            # Calculate processing time metrics
+            processing_times = [r.processing_time for r in results if r.processing_time is not None]
+            if processing_times:
+                average_processing_time = sum(processing_times) / len(processing_times)
+                min_processing_time = min(processing_times)
+                max_processing_time = max(processing_times)
+            else:
+                average_processing_time = None
+                min_processing_time = None
+                max_processing_time = None
+            
+            # Check if performance record already exists for this agent today
+            today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            
+            performance_record = session.query(AgentPerformance).filter(
+                and_(
+                    AgentPerformance.agent_name == agent_name,
+                    AgentPerformance.date >= today
+                )
+            ).first()
+            
+            if performance_record:
+                # Update existing record
+                performance_record.total_executions = total_executions
+                performance_record.successful_executions = successful_executions
+                performance_record.failed_executions = failed_executions
+                performance_record.timeout_executions = timeout_executions
+                performance_record.average_processing_time = average_processing_time
+                performance_record.min_processing_time = min_processing_time
+                performance_record.max_processing_time = max_processing_time
+                performance_record.date = datetime.utcnow()  # Update timestamp
+                
+                logger.info(f"Updated performance metrics for agent {agent_name}")
+            else:
+                # Create new record
+                performance_record = AgentPerformance(
+                    agent_name=agent_name,
+                    total_executions=total_executions,
+                    successful_executions=successful_executions,
+                    failed_executions=failed_executions,
+                    timeout_executions=timeout_executions,
+                    average_processing_time=average_processing_time,
+                    min_processing_time=min_processing_time,
+                    max_processing_time=max_processing_time,
+                    date=datetime.utcnow()
+                )
+                session.add(performance_record)
+                
+                logger.info(f"Created new performance record for agent {agent_name}")
+            
+            session.commit()
+            return True
+            
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Failed to update agent performance metrics for {agent_name}: {str(e)}")
+            return False
+        finally:
+            close_db_session(session)
+    
+    @staticmethod
+    def update_all_agent_performance_metrics() -> bool:
+        """
+        Update performance metrics for all agents.
+        Useful for batch updates or initial population of the agent_performance table.
+        """
+        session = get_db_session()
+        try:
+            # Get list of all unique agent names from agent_results
+            agent_names = session.query(AgentResult.agent_name).distinct().all()
+            agent_names = [name[0] for name in agent_names]
+            
+            logger.info(f"Updating performance metrics for {len(agent_names)} agents")
+            
+            success_count = 0
+            for agent_name in agent_names:
+                try:
+                    if DatabaseService.update_agent_performance_metrics(agent_name):
+                        success_count += 1
+                except Exception as e:
+                    logger.error(f"Failed to update metrics for {agent_name}: {str(e)}")
+                    continue
+            
+            logger.info(f"Successfully updated performance metrics for {success_count}/{len(agent_names)} agents")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to update all agent performance metrics: {str(e)}")
+            return False
+        finally:
+            close_db_session(session)
+    
+    @staticmethod
+    def get_agent_performance_from_table(
+        agent_name: Optional[str] = None,
+        days_back: int = 30
+    ) -> List[Dict[str, Any]]:
+        """
+        Get agent performance data directly from the agent_performance table.
+        This is more efficient than calculating from agent_results on every request.
+        """
+        session = get_db_session()
+        try:
+            query = session.query(AgentPerformance)
+            
+            # Filter by date
+            date_threshold = datetime.utcnow() - timedelta(days=days_back)
+            query = query.filter(AgentPerformance.date >= date_threshold)
+            
+            # Filter by agent name if provided
+            if agent_name:
+                query = query.filter(AgentPerformance.agent_name == agent_name)
+            
+            # Order by most recent first
+            performance_records = query.order_by(desc(AgentPerformance.date)).all()
+            
+            return [record.to_dict() for record in performance_records]
+            
+        except Exception as e:
+            logger.error(f"Failed to get agent performance from table: {str(e)}")
+            return []
+        finally:
+            close_db_session(session)
+    
+    @staticmethod
+    def get_latest_agent_performance_summary() -> List[Dict[str, Any]]:
+        """
+        Get the most recent performance metrics for each agent.
+        Returns one record per agent with their latest metrics.
+        """
+        session = get_db_session()
+        try:
+            # Subquery to get the latest date for each agent
+            from sqlalchemy.sql import func
+            
+            subquery = session.query(
+                AgentPerformance.agent_name,
+                func.max(AgentPerformance.date).label('max_date')
+            ).group_by(AgentPerformance.agent_name).subquery()
+            
+            # Join to get full records for the latest date of each agent
+            query = session.query(AgentPerformance).join(
+                subquery,
+                and_(
+                    AgentPerformance.agent_name == subquery.c.agent_name,
+                    AgentPerformance.date == subquery.c.max_date
+                )
+            )
+            
+            performance_records = query.all()
+            
+            return [record.to_dict() for record in performance_records]
+            
+        except Exception as e:
+            logger.error(f"Failed to get latest agent performance summary: {str(e)}")
             return []
         finally:
             close_db_session(session)
