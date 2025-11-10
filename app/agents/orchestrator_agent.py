@@ -123,34 +123,48 @@ Provide a coordinated analysis plan and execution strategy."""
         for agent_type in ['problem_explorer', 'best_practices', 'horizon_scanning', 
                           'scenario_planning', 'research_synthesis', 'strategic_action', 'high_impact']:
             if agent_type in input_data:
-                agent_result = input_data[agent_type]
-                
-                # Handle different result structures robustly
-                if isinstance(agent_result, str):
-                    # If it's a string, try to parse it as JSON first
-                    try:
-                        agent_result = json.loads(agent_result)
-                    except json.JSONDecodeError:
-                        # If parsing fails, use the string directly
-                        results.append(f"{agent_type.replace('_', ' ').title()}: {agent_result[:200]}...")
-                        continue
-                
-                # Now we know it's a dictionary
-                if isinstance(agent_result, dict):
-                    # Try to get formatted_output first, then data, then convert whole dict to string
-                    if 'data' in agent_result and isinstance(agent_result['data'], dict):
-                        if 'formatted_output' in agent_result['data']:
-                            content = agent_result['data']['formatted_output'][:500]
-                        elif 'analysis' in agent_result['data']:
-                            content = agent_result['data']['analysis'][:500]
+                try:
+                    agent_result = input_data[agent_type]
+                    
+                    # Ensure we're working with the right type
+                    if not isinstance(agent_result, (dict, str)):
+                        agent_result = str(agent_result)
+                    
+                    # Handle different result structures robustly
+                    if isinstance(agent_result, str):
+                        # If it's a string, try to parse it as JSON first
+                        try:
+                            agent_result = json.loads(agent_result)
+                        except (json.JSONDecodeError, TypeError):
+                            # If parsing fails, use the string directly
+                            results.append(f"{agent_type.replace('_', ' ').title()}: {agent_result[:200]}...")
+                            continue
+                    
+                    # Now we know it's a dictionary
+                    if isinstance(agent_result, dict):
+                        # Try to get formatted_output first, then data, then convert whole dict to string
+                        if 'data' in agent_result:
+                            data_content = agent_result.get('data', {})
+                            if isinstance(data_content, dict):
+                                if 'formatted_output' in data_content:
+                                    content = str(data_content['formatted_output'])[:500]
+                                elif 'analysis' in data_content:
+                                    content = str(data_content['analysis'])[:500]
+                                else:
+                                    content = str(data_content)[:500]
+                            else:
+                                content = str(data_content)[:500]
                         else:
-                            content = str(agent_result['data'])[:500]
+                            content = str(agent_result)[:500]
+                        results.append(f"{agent_type.replace('_', ' ').title()}: {content}")
                     else:
-                        content = str(agent_result)[:500]
-                    results.append(f"{agent_type.replace('_', ' ').title()}: {content}")
-                else:
-                    # Fallback for any other type
-                    results.append(f"{agent_type.replace('_', ' ').title()}: {str(agent_result)[:200]}")
+                        # Fallback for any other type
+                        results.append(f"{agent_type.replace('_', ' ').title()}: {str(agent_result)[:200]}")
+                        
+                except Exception as e:
+                    # If any error occurs, just skip this agent
+                    print(f"Warning: Could not format results for {agent_type}: {str(e)}")
+                    continue
                     
         return '\n'.join(results) if results else 'No previous results available'
 
@@ -162,8 +176,14 @@ Provide a coordinated analysis plan and execution strategy."""
         try:
             # Normalize architecture name for database storage
             # hybrid_parallel → parallel (for easier data analysis)
+            # grouped_hierarchical → hierarchical (simplified naming)
             architecture = input_data.get('architecture', 'unknown')
-            db_architecture = 'parallel' if architecture == 'hybrid_parallel' else architecture
+            if architecture == 'hybrid_parallel':
+                db_architecture = 'parallel'
+            elif architecture == 'grouped_hierarchical':
+                db_architecture = 'hierarchical'
+            else:
+                db_architecture = architecture
             
             self.current_session_id = DatabaseService.create_analysis_session(
                 strategic_question=input_data.get('strategic_question', ''),
@@ -470,7 +490,11 @@ Provide a coordinated analysis plan and execution strategy."""
         elif architecture == "hybrid_parallel":
             return await self._process_hybrid_parallel(initial_input_data)
         elif architecture == "hierarchical":
-            return await self._process_hierarchical(initial_input_data)
+            # Hierarchical now uses the grouped hierarchical implementation (intelligent + parallel)
+            return await self._process_grouped_hierarchical(initial_input_data)
+        elif architecture == "grouped_hierarchical":
+            # Alias for hierarchical (for backwards compatibility)
+            return await self._process_grouped_hierarchical(initial_input_data)
         else:
             # Log and raise an error for unknown architecture
             message = f"Unknown or unsupported architecture specified: '{architecture}'"
@@ -894,4 +918,224 @@ Your response (just the agent name or COMPLETE):"""
                 fallback = available_agents[0]
                 print(f"Falling back to first available agent: {fallback}")
                 return fallback
-            return "COMPLETE" 
+            return "COMPLETE"
+    
+    async def _grouped_hierarchical_decide_next_group(
+        self, 
+        cumulative_input_data: Dict[str, Any], 
+        available_agents: List[str],
+        executed_agents: List[str]
+    ) -> List[str]:
+        """
+        Uses PREDEFINED RULES to decide which GROUP of agents to run next in parallel.
+        Returns a list of agent names to run together, or ["COMPLETE"] if analysis should end.
+        
+        This uses a simple, reliable strategy instead of LLM planning to ensure fast, parallel execution.
+        """
+        
+        # Define optimal grouping strategy based on agent dependencies
+        # Stage 2: Research agents (no dependencies on each other)
+        stage_2_research = ['Best Practices', 'Horizon Scanning']
+        
+        # Stage 3: Analysis agents (can work with research results)
+        stage_3_analysis = ['Scenario Planning', 'Research Synthesis']
+        
+        # Stage 4: Action agents (need synthesis results, but Strategic Action independent)
+        stage_4_action = ['Strategic Action']
+        
+        # Stage 5: High Impact (needs Strategic Action results)
+        stage_5_high_impact = ['High Impact']
+        
+        # Stage 6: Backcasting (needs High Impact results)
+        stage_6_backcasting = ['Backcasting']
+        
+        # Determine which stage we're at based on what's been executed
+        if not any(agent in executed_agents for agent in stage_2_research):
+            # Stage 2: Run research agents in parallel
+            group = [a for a in stage_2_research if a in available_agents]
+            if group:
+                print(f"📋 Hierarchical Strategy: Research Phase → {group}")
+                return group
+        
+        if not any(agent in executed_agents for agent in stage_3_analysis):
+            # Stage 3: Run analysis agents in parallel
+            group = [a for a in stage_3_analysis if a in available_agents]
+            if group:
+                print(f"📋 Hierarchical Strategy: Analysis Phase → {group}")
+                return group
+        
+        if not any(agent in executed_agents for agent in stage_4_action):
+            # Stage 4: Run Strategic Action
+            group = [a for a in stage_4_action if a in available_agents]
+            if group:
+                print(f"📋 Hierarchical Strategy: Action Phase → {group}")
+                return group
+        
+        if not any(agent in executed_agents for agent in stage_5_high_impact):
+            # Stage 5: Run High Impact (depends on Strategic Action)
+            group = [a for a in stage_5_high_impact if a in available_agents]
+            if group:
+                print(f"📋 Hierarchical Strategy: High Impact Phase → {group}")
+                return group
+        
+        if not any(agent in executed_agents for agent in stage_6_backcasting):
+            # Stage 6: Run Backcasting (depends on High Impact)
+            group = [a for a in stage_6_backcasting if a in available_agents]
+            if group:
+                print(f"📋 Hierarchical Strategy: Backcasting Phase → {group}")
+                return group
+        
+        # All predefined stages complete, check if any agents remain
+        if available_agents:
+            # Run any remaining agents together
+            print(f"📋 Hierarchical Strategy: Remaining agents → {available_agents[:3]}")
+            return available_agents[:3]  # Take up to 3 remaining agents
+        
+        # Everything complete
+        print(f"📋 Hierarchical Strategy: COMPLETE")
+        return ["COMPLETE"]
+    
+    async def _process_grouped_hierarchical(self, initial_input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        GROUPED HIERARCHICAL ARCHITECTURE: LLM-driven multi-agent parallel execution.
+        
+        The orchestrator uses an LLM to decide which GROUPS of agents to run at each stage.
+        Agents within a group run in parallel, but groups are executed sequentially.
+        
+        This combines the intelligence of hierarchical planning with the speed of parallel execution.
+        """
+        results: Dict[str, Any] = {}
+        cumulative_input_data = initial_input_data.copy()
+        
+        # Track which agents have been executed
+        executed_agents = []
+        available_agents = list(self.agents.keys())
+
+        try:
+            # --- Stage 1: Always start with Problem Explorer ---
+            print("\n" + "="*80)
+            print("🧠 HIERARCHICAL: Starting Foundation Stage")
+            print("="*80)
+            
+            await self._run_agent("Problem Explorer", cumulative_input_data, results)
+            executed_agents.append("Problem Explorer")
+            available_agents.remove("Problem Explorer")
+            
+            print(f"✅ Foundation established with Problem Explorer")
+            
+            # --- Stage 2+: Dynamic grouped execution ---
+            max_stages = 8  # Safety limit (enough for all 8 agents if needed)
+            current_stage = 2
+            
+            while available_agents and current_stage <= max_stages:
+                print(f"\n" + "="*80)
+                print(f"🧠 HIERARCHICAL: Planning Stage {current_stage}")
+                print("="*80)
+                print(f"📊 Executed agents: {executed_agents}")
+                print(f"📋 Available agents: {available_agents}")
+                
+                # Ask LLM to decide the next group
+                agent_group = await self._grouped_hierarchical_decide_next_group(
+                    cumulative_input_data, 
+                    available_agents,
+                    executed_agents
+                )
+                
+                # Check if planner wants to stop
+                if agent_group == ["COMPLETE"] or "COMPLETE" in agent_group:
+                    print(f"\n✅ Hierarchical Planner: Analysis is COMPLETE")
+                    break
+                
+                # Validate all agents in group are available
+                valid_group = [agent for agent in agent_group if agent in available_agents]
+                
+                if not valid_group:
+                    print(f"⚠️ No valid agents in planned group, ending execution")
+                    break
+                
+                # Execute the group in parallel
+                print(f"\n🚀 Executing Group: {valid_group} (in parallel)")
+                
+                input_for_group = cumulative_input_data.copy()
+                
+                # Create tasks for all agents in the group
+                tasks = [
+                    self.rate_limited_process(self.agents[agent_name], input_for_group, agent_name)
+                    for agent_name in valid_group
+                ]
+                
+                # Run all agents in the group concurrently
+                group_results = await asyncio.gather(*tasks, return_exceptions=True)
+                
+                # Process results from the group
+                for i, result_or_exc in enumerate(group_results):
+                    agent_name = valid_group[i]
+                    agent_key = self.agent_names_map[agent_name]
+
+                    if isinstance(result_or_exc, Exception):
+                        print(f"❌ Exception in grouped agent {agent_name}: {str(result_or_exc)}")
+                        results[agent_name] = {"status": "error", "error": str(result_or_exc), "agent_type": agent_name}
+                        self._update_session_completion("failed")
+                        raise HTTPException(status_code=500, detail=f"Error in {agent_name}: {str(result_or_exc)}")
+                    
+                    result = result_or_exc
+                    if result.get("status") == "error":
+                        print(f"❌ Error in grouped agent {agent_name}: {result.get('error', 'Unknown error')}")
+                        results[agent_name] = result
+                        self._update_session_completion("failed")
+                        raise HTTPException(status_code=500, detail=f"Error in {agent_name}: {result.get('error', 'Unknown error')}")
+
+                    # Store successful result
+                    results[agent_name] = result
+                    cumulative_input_data[agent_key] = result
+                    executed_agents.append(agent_name)
+                    available_agents.remove(agent_name)
+                    
+                    print(f"✅ {agent_name} completed successfully")
+                
+                print(f"✅ Stage {current_stage} group completed")
+                current_stage += 1
+            
+            # Check if we hit max stages
+            if available_agents and current_stage > max_stages:
+                print(f"\n⚠️ Reached max stages ({max_stages}). Remaining agents: {available_agents}")
+            
+            print(f"\n" + "="*80)
+            print(f"🎉 HIERARCHICAL: Analysis Complete!")
+            print(f"📊 Total agents executed: {len(executed_agents)}")
+            print(f"📋 Execution order: {' → '.join([f'[{a}]' if '[' not in a else a for a in executed_agents])}")
+            print("="*80)
+            
+            self._update_session_completion("completed")
+
+        except HTTPException as he:
+            print(f"Orchestrator caught HTTPException: {he.detail}")
+            if self.db_enabled and self.current_session_id and DATABASE_AVAILABLE:
+                try:
+                    DatabaseService.log_system_event(
+                        log_level="ERROR", component="orchestrator",
+                        message=f"Analysis session {self.current_session_id} failed: {he.detail}",
+                        session_id=self.current_session_id,
+                        details={"error": he.detail, "status_code": he.status_code}
+                    )
+                except Exception as e:
+                    print(f"Failed to log error to database: {e}")
+            return {"status": "error", "error_detail": he.detail, "completed_stages_results": results, "session_id": self.current_session_id}
+        except Exception as e:
+            print(f"Unexpected error in Hierarchical Orchestrator: {str(e)}")
+            self._update_session_completion("failed")
+            if self.db_enabled and self.current_session_id and DATABASE_AVAILABLE:
+                try:
+                    DatabaseService.log_system_event(
+                        log_level="ERROR", component="orchestrator",
+                        message=f"Analysis session {self.current_session_id} failed unexpectedly: {str(e)}",
+                        session_id=self.current_session_id, details={"error": str(e)}
+                    )
+                except Exception as db_e:
+                    print(f"Failed to log error to database: {db_e}")
+            return {"status": "error", "error_detail": f"Orchestrator failed: {str(e)}", "completed_stages_results": results, "session_id": self.current_session_id}
+        
+        if self.current_session_id:
+            results["session_id"] = self.current_session_id
+            
+        return results 
