@@ -160,13 +160,18 @@ Provide a coordinated analysis plan and execution strategy."""
             return
             
         try:
+            # Normalize architecture name for database storage
+            # hybrid_parallel → parallel (for easier data analysis)
+            architecture = input_data.get('architecture', 'unknown')
+            db_architecture = 'parallel' if architecture == 'hybrid_parallel' else architecture
+            
             self.current_session_id = DatabaseService.create_analysis_session(
                 strategic_question=input_data.get('strategic_question', ''),
                 time_frame=input_data.get('time_frame', ''),
                 region=input_data.get('region', ''),
                 additional_instructions=input_data.get('prompt', ''),
                 user_id=input_data.get('user_id'),
-                architecture=input_data.get('architecture', 'unknown')
+                architecture=db_architecture
             )
             self.session_start_time = time.time()
             
@@ -462,6 +467,8 @@ Provide a coordinated analysis plan and execution strategy."""
             return await self._process_sequential(initial_input_data)
         elif architecture == "parallel":
             return await self._process_parallel(initial_input_data)
+        elif architecture == "hybrid_parallel":
+            return await self._process_hybrid_parallel(initial_input_data)
         elif architecture == "hierarchical":
             return await self._process_hierarchical(initial_input_data)
         else:
@@ -579,6 +586,110 @@ Provide a coordinated analysis plan and execution strategy."""
                 cumulative_input_data[agent_key] = result
             
             print("Parallel: All agents completed successfully")
+            self._update_session_completion("completed")
+
+        except HTTPException as he:
+            print(f"Orchestrator caught HTTPException: {he.detail}")
+            if self.db_enabled and self.current_session_id and DATABASE_AVAILABLE:
+                try:
+                    DatabaseService.log_system_event(
+                        log_level="ERROR", component="orchestrator",
+                        message=f"Analysis session {self.current_session_id} failed: {he.detail}",
+                        session_id=self.current_session_id,
+                        details={"error": he.detail, "status_code": he.status_code}
+                    )
+                except Exception as e:
+                    print(f"Failed to log error to database: {e}")
+            return {"status": "error", "error_detail": he.detail, "completed_stages_results": results, "session_id": self.current_session_id}
+        except Exception as e:
+            print(f"Unexpected error in Parallel Orchestrator: {str(e)}")
+            self._update_session_completion("failed")
+            if self.db_enabled and self.current_session_id and DATABASE_AVAILABLE:
+                try:
+                    DatabaseService.log_system_event(
+                        log_level="ERROR", component="orchestrator",
+                        message=f"Analysis session {self.current_session_id} failed unexpectedly: {str(e)}",
+                        session_id=self.current_session_id, details={"error": str(e)}
+                    )
+                except Exception as db_e:
+                    print(f"Failed to log error to database: {db_e}")
+            return {"status": "error", "error_detail": f"Orchestrator failed: {str(e)}", "completed_stages_results": results, "session_id": self.current_session_id}
+            
+        if self.current_session_id:
+            results["session_id"] = self.current_session_id
+            
+        return results
+
+    async def _process_hybrid_parallel(self, initial_input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        PARALLEL ARCHITECTURE: A multi-stage process.
+        
+        - Stage 1: Foundational analysis (sequential).
+        - Stage 2: Independent research agents (parallel).
+        - Stage 3: Synthesis and prioritization (sequential).
+        """
+        results: Dict[str, Any] = {}
+        cumulative_input_data = initial_input_data.copy()
+
+        try:
+            # --- Stage 1: Problem Explorer (Foundation) ---
+            print("Parallel: Starting Stage 1 - Problem Explorer")
+            await self._run_agent("Problem Explorer", cumulative_input_data, results)
+
+            # --- Stage 2: Parallel Research Phase ---
+            stage_2_agents = [
+                "Best Practices",
+                "Horizon Scanning",
+                "Scenario Planning",
+                "Strategic Action"
+            ]
+            print(f"Parallel: Starting Stage 2 - Launching {len(stage_2_agents)} agents in parallel")
+            
+            input_for_stage_2 = cumulative_input_data.copy()
+            
+            tasks = [
+                self.rate_limited_process(self.agents[agent_name], input_for_stage_2, agent_name)
+                for agent_name in stage_2_agents
+            ]
+            
+            stage_2_results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Process results from Stage 2
+            for i, result_or_exc in enumerate(stage_2_results):
+                agent_name = stage_2_agents[i]
+                agent_key = self.agent_names_map[agent_name]
+
+                if isinstance(result_or_exc, Exception):
+                    print(f"Exception in Stage 2 agent {agent_name}: {str(result_or_exc)}")
+                    results[agent_name] = {"status": "error", "error": str(result_or_exc), "agent_type": agent_name}
+                    self._update_session_completion("failed")
+                    raise HTTPException(status_code=500, detail=f"Error in {agent_name}: {str(result_or_exc)}")
+                
+                result = result_or_exc
+                if result.get("status") == "error":
+                    print(f"Error in Stage 2 agent {agent_name}: {result.get('error', 'Unknown error')}")
+                    results[agent_name] = result
+                    self._update_session_completion("failed")
+                    raise HTTPException(status_code=500, detail=f"Error in {agent_name}: {result.get('error', 'Unknown error')}")
+
+                results[agent_name] = result
+                cumulative_input_data[agent_key] = result
+            
+            print("Parallel: Stage 2 completed successfully")
+
+            # --- Stage 3: Sequential Synthesis & Prioritization ---
+            print("Parallel: Starting Stage 3 - Sequential Synthesis")
+            
+            # 1. Research Synthesis
+            await self._run_agent("Research Synthesis", cumulative_input_data, results)
+            
+            # 2. High Impact
+            await self._run_agent("High Impact", cumulative_input_data, results)
+            
+            # 3. Backcasting
+            await self._run_agent("Backcasting", cumulative_input_data, results)
+            
+            print("Parallel: Stage 3 completed successfully")
             self._update_session_completion("completed")
 
         except HTTPException as he:

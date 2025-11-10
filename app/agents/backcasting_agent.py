@@ -93,15 +93,22 @@ Guidelines for the Agent
         high_impact_data = input_data.get('high_impact', {}).get('data', {})
         execution_ready_initiatives = high_impact_data.get('execution_ready_initiatives', [])
         
+        print(f"🔍 Backcasting format_prompt: Found {len(execution_ready_initiatives)} initiatives")
+        
         # Extract immediate action items organized by time horizon
-        near_term_actions = []
-        medium_term_actions = []
-        long_term_actions = []
+        # Store as instance variables so we can use them for fallback later
+        self.near_term_actions = []
+        self.medium_term_actions = []
+        self.long_term_actions = []
         
         for initiative in execution_ready_initiatives:
             time_horizon = initiative.get('time_horizon', '').strip()
             immediate_tasks = initiative.get('immediate_tasks', [])
             initiative_title = initiative.get('title', 'Untitled Initiative')
+            
+            print(f"  Initiative: {initiative_title}")
+            print(f"    Time Horizon: {time_horizon}")
+            print(f"    Immediate Tasks: {len(immediate_tasks)}")
             
             # Add each immediate task with context
             for task in immediate_tasks:
@@ -116,11 +123,13 @@ Guidelines for the Agent
                 }
                 
                 if 'Near-Term' in time_horizon:
-                    near_term_actions.append(task_item)
+                    self.near_term_actions.append(task_item)
                 elif 'Medium-Term' in time_horizon:
-                    medium_term_actions.append(task_item)
+                    self.medium_term_actions.append(task_item)
                 elif 'Long-Term' in time_horizon:
-                    long_term_actions.append(task_item)
+                    self.long_term_actions.append(task_item)
+        
+        print(f"📊 Actions extracted: Near={len(self.near_term_actions)}, Medium={len(self.medium_term_actions)}, Long={len(self.long_term_actions)}")
         
         # Format actions for the prompt
         def format_actions(actions, horizon_name):
@@ -134,9 +143,9 @@ Guidelines for the Agent
                 text += f"\n   Context: {action['context']['why_important'][:100]}..."
             return text
         
-        near_term_text = format_actions(near_term_actions, "Near-Term (0-2 years)")
-        medium_term_text = format_actions(medium_term_actions, "Medium-Term (2-5 years)")
-        long_term_text = format_actions(long_term_actions, "Long-Term (5-10 years)")
+        near_term_text = format_actions(self.near_term_actions, "Near-Term (0-2 years)")
+        medium_term_text = format_actions(self.medium_term_actions, "Medium-Term (2-5 years)")
+        long_term_text = format_actions(self.long_term_actions, "Long-Term (5-10 years)")
         
         return f"""Original Problem Statement: {strategic_question}
 
@@ -155,22 +164,104 @@ Focus on creating an actionable priority sequence that decision-makers can execu
 
     async def process(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         try:
+            # DETAILED DIAGNOSTIC LOGGING
+            print("\n" + "="*80)
+            print("BACKCASTING AGENT - DETAILED DIAGNOSTICS")
+            print("="*80)
+            print(f"Input keys: {list(input_data.keys())}")
+            
+            # Check if high_impact exists
+            if 'high_impact' in input_data:
+                print("✓ high_impact key found in input_data")
+                high_impact_result = input_data.get('high_impact', {})
+                print(f"  high_impact type: {type(high_impact_result)}")
+                print(f"  high_impact keys: {list(high_impact_result.keys()) if isinstance(high_impact_result, dict) else 'N/A'}")
+                
+                if isinstance(high_impact_result, dict) and 'data' in high_impact_result:
+                    print("✓ data key found in high_impact")
+                    data = high_impact_result['data']
+                    print(f"  data keys: {list(data.keys()) if isinstance(data, dict) else 'N/A'}")
+                    
+                    if isinstance(data, dict) and 'execution_ready_initiatives' in data:
+                        print("✓ execution_ready_initiatives found in data")
+                        initiatives = data['execution_ready_initiatives']
+                        print(f"  Number of initiatives: {len(initiatives) if isinstance(initiatives, list) else 'N/A'}")
+                        if isinstance(initiatives, list):
+                            for i, init in enumerate(initiatives):
+                                print(f"  Initiative {i+1}:")
+                                print(f"    Title: {init.get('title', 'N/A')}")
+                                print(f"    Time Horizon: {init.get('time_horizon', 'N/A')}")
+                                print(f"    Immediate Tasks: {len(init.get('immediate_tasks', []))}")
+                    else:
+                        print("✗ execution_ready_initiatives NOT found in data")
+                else:
+                    print("✗ data key NOT found in high_impact")
+            else:
+                print("✗ high_impact key NOT found in input_data")
+                print(f"Available keys: {list(input_data.keys())}")
+            print("="*80 + "\n")
+            
             prompt = self.format_prompt(input_data)
+            print(f"\n📝 Backcasting Prompt Length: {len(prompt)} characters")
+            print(f"📝 Prompt Preview (first 500 chars):\n{prompt[:500]}...")
+            
             response, token_usage = await self.invoke_llm(prompt)
+            print(f"\n📥 LLM Response Length: {len(response)} characters")
+            print(f"📥 Response Preview (first 1000 chars):\n{response[:1000]}...")
             
             # Parse JSON from response
             prioritization_data = self._parse_prioritization_json(response)
+            print(f"\n🔍 JSON Parsing Result: {prioritization_data is not None}")
             
             # If JSON parsing fails, try to parse structured text
             if not prioritization_data:
+                print("⚠️ JSON parsing failed, trying text parsing...")
                 prioritization_data = self._parse_prioritization_text(response)
+                print(f"🔍 Text Parsing Result: {prioritization_data is not None}")
             
             # If still no data, create fallback structure
             if not prioritization_data:
+                print("⚠️ All parsing failed, creating fallback...")
                 prioritization_data = self._create_fallback_prioritization()
             
+            # Log what we're about to return
+            print("\n📊 FINAL PRIORITIZATION DATA (before validation):")
+            for key in ['near_term_prioritization', 'medium_term_prioritization', 'long_term_prioritization']:
+                items = prioritization_data.get(key, [])
+                print(f"  {key}: {len(items)} items")
+                if items and len(items) > 0:
+                    print(f"    First item: {items[0].get('title', 'NO TITLE')[:80]}...")
+            
+            # CRITICAL FIX: If ALL lists are empty, something went wrong - use a robust fallback
+            total_items = sum(len(prioritization_data.get(key, [])) for key in ['near_term_prioritization', 'medium_term_prioritization', 'long_term_prioritization'])
+            
+            if total_items == 0:
+                print("\n⚠️ WARNING: All prioritization lists are empty! Using enhanced fallback...")
+                
+                # Check if we had any action items stored from format_prompt
+                total_actions = len(getattr(self, 'near_term_actions', [])) + len(getattr(self, 'medium_term_actions', [])) + len(getattr(self, 'long_term_actions', []))
+                print(f"  Total actions available from High Impact: {total_actions}")
+                
+                if total_actions > 0:
+                    # We had data but LLM/parsing failed - create prioritization from actual tasks
+                    prioritization_data = self._create_prioritization_from_tasks(
+                        self.near_term_actions, 
+                        self.medium_term_actions, 
+                        self.long_term_actions
+                    )
+                    print(f"  ✅ Created prioritization from {total_actions} actual tasks")
+                else:
+                    # No tasks available at all - use generic fallback
+                    prioritization_data = self._create_fallback_prioritization()
+                    print(f"  ✅ Using generic fallback (no tasks available)")
+            
             prioritization_data["token_usage"] = token_usage
-            return self.format_output(prioritization_data, response)
+            formatted_result = self.format_output(prioritization_data, response)
+            
+            print(f"\n✅ Returning formatted result with status: {formatted_result.get('status', 'unknown')}")
+            print(f"📄 Formatted output length: {len(formatted_result.get('data', {}).get('formatted_output', ''))} characters")
+            
+            return formatted_result
             
         except Exception as e:
             logger.error(f"Error in BackcastingAgent: {str(e)}")
@@ -187,26 +278,42 @@ Focus on creating an actionable priority sequence that decision-makers can execu
             json_pattern = r'```json\s*(\{.*?\})\s*```'
             json_matches = re.findall(json_pattern, response, re.DOTALL)
             
+            print(f"🔎 Looking for JSON in response... Found {len(json_matches)} JSON blocks")
+            
             if json_matches:
                 json_str = json_matches[0]
+                print(f"🔎 JSON block preview (first 200 chars): {json_str[:200]}...")
                 data = json.loads(json_str)
                 
                 # Validate structure
                 required_keys = ['near_term_prioritization', 'medium_term_prioritization', 'long_term_prioritization']
                 if all(key in data for key in required_keys):
+                    print(f"✅ Valid JSON structure with all required keys")
                     return data
+                else:
+                    print(f"⚠️ JSON found but missing required keys. Has: {list(data.keys())}")
             
             # Try parsing entire response as JSON
             if response.strip().startswith('{'):
-                return json.loads(response.strip())
+                print("🔎 Trying to parse entire response as JSON...")
+                data = json.loads(response.strip())
+                required_keys = ['near_term_prioritization', 'medium_term_prioritization', 'long_term_prioritization']
+                if all(key in data for key in required_keys):
+                    print(f"✅ Valid JSON structure from full response")
+                    return data
+                else:
+                    print(f"⚠️ Full response JSON missing required keys. Has: {list(data.keys())}")
                 
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as e:
+            print(f"❌ JSON decode error: {str(e)}")
+        except Exception as e:
+            print(f"❌ Error parsing JSON: {str(e)}")
         
         return None
 
     def _parse_prioritization_text(self, response: str) -> Dict[str, Any]:
         """Fallback method to parse structured text if JSON parsing fails"""
+        print("🔄 Attempting text parsing fallback...")
         prioritization = {
             'near_term_prioritization': [],
             'medium_term_prioritization': [],
@@ -216,6 +323,7 @@ Focus on creating an actionable priority sequence that decision-makers can execu
         lines = response.split('\n')
         current_section = None
         current_item = {}
+        items_found = 0
         
         for line in lines:
             line = line.strip()
@@ -238,6 +346,7 @@ Focus on creating an actionable priority sequence that decision-makers can execu
                 # Save previous item
                 if current_item and 'title' in current_item:
                     prioritization[current_section].append(current_item)
+                    items_found += 1
                 
                 # Start new item
                 rank_match = re.match(r'^(\d+)\.\s*(.+)', line)
@@ -260,31 +369,56 @@ Focus on creating an actionable priority sequence that decision-makers can execu
         # Save last item
         if current_item and 'title' in current_item and current_section:
             prioritization[current_section].append(current_item)
+            items_found += 1
+        
+        print(f"✅ Text parsing complete. Found {items_found} total items")
+        for key in ['near_term_prioritization', 'medium_term_prioritization', 'long_term_prioritization']:
+            print(f"  {key}: {len(prioritization[key])} items")
         
         return prioritization
 
+    def _create_prioritization_from_tasks(self, near_term_actions: List[Dict], medium_term_actions: List[Dict], long_term_actions: List[Dict]) -> Dict[str, Any]:
+        """Create prioritization directly from task data when LLM/parsing fails"""
+        
+        def create_items_from_actions(actions):
+            """Convert action items to prioritized items"""
+            items = []
+            for i, action in enumerate(actions, 1):
+                items.append({
+                    'rank': i,
+                    'title': action['task'],
+                    'justification': f"This task is part of the {action['initiative']} initiative. {action['context']['why_important'][:200]}... Given its strategic importance and operational feasibility, this task has been prioritized to ensure effective implementation."
+                })
+            return items
+        
+        return {
+            'near_term_prioritization': create_items_from_actions(near_term_actions),
+            'medium_term_prioritization': create_items_from_actions(medium_term_actions),
+            'long_term_prioritization': create_items_from_actions(long_term_actions)
+        }
+    
     def _create_fallback_prioritization(self) -> Dict[str, Any]:
-        """Create fallback prioritization structure"""
+        """Create fallback prioritization structure when no task data is available"""
         return {
             'near_term_prioritization': [
                 {
                     'rank': 1,
                     'title': 'Define strategic implementation framework',
-                    'justification': 'High urgency to establish foundation, high impact on all subsequent actions, highly feasible with current resources'
+                    'justification': 'High urgency to establish foundation for all strategic initiatives. High impact as it enables subsequent actions. Highly feasible with current resources and organizational capabilities.'
                 }
             ],
             'medium_term_prioritization': [
                 {
                     'rank': 1,
                     'title': 'Execute strategic initiatives based on near-term foundations',
-                    'justification': 'Medium urgency following near-term setup, high impact on strategic goals, feasible with developed capabilities'
+                    'justification': 'Medium urgency following near-term setup phase. High impact on achieving strategic goals. Feasible with capabilities developed in near-term phase.'
                 }
             ],
             'long_term_prioritization': [
                 {
                     'rank': 1,
                     'title': 'Sustain and scale strategic outcomes',
-                    'justification': 'Lower urgency but essential for sustainability, very high long-term impact, feasible with established systems'
+                    'justification': 'Lower immediate urgency but essential for long-term sustainability. Very high long-term impact on organizational success. Feasible with systems and processes established in earlier phases.'
                 }
             ]
         }

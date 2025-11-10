@@ -137,10 +137,25 @@ Guidelines for the Agent
         
         # Extract Strategic Action Agent output
         strategic_action_data = input_data.get('strategic_action', {}).get('data', {})
-        action_plan_sections = strategic_action_data.get('structured_action_plan', {})
         
+        # Flexibly find the action plan data
+        action_plan_sections = {}
+        if 'structured_action_plan' in strategic_action_data:
+            action_plan_sections = strategic_action_data.get('structured_action_plan', {})
+        elif 'near_term_ideas' in strategic_action_data: # Check if the keys exist at the top level of 'data'
+            action_plan_sections = strategic_action_data
+        else:
+            logger.warning("Could not find 'structured_action_plan' or time-based ideas in strategic_action data.")
+
         # Group high-priority items by time horizon
         high_priority_by_horizon = {
+            "Near-Term": [],
+            "Medium-Term": [],
+            "Long-Term": []
+        }
+        
+        # Also collect all items in case there are no high-priority ones
+        all_actions_by_horizon = {
             "Near-Term": [],
             "Medium-Term": [],
             "Long-Term": []
@@ -155,17 +170,25 @@ Guidelines for the Agent
             for idea in ideas:
                 # Extract high-priority action items from this idea
                 for action_item in idea.get('action_items', []):
+                    action_details = {
+                        'strategic_idea': idea.get('idea_title', 'N/A'),
+                        'idea_summary': idea.get('idea_summary', 'N/A'),
+                        'action': action_item.get('action', 'N/A')
+                    }
+                    all_actions_by_horizon[time_horizon].append(action_details)
                     if action_item.get('priority', '').lower() == 'high':
-                        high_priority_by_horizon[time_horizon].append({
-                            'strategic_idea': idea.get('idea_title', 'N/A'),
-                            'idea_summary': idea.get('idea_summary', 'N/A'),
-                            'action': action_item.get('action', 'N/A')
-                        })
+                        high_priority_by_horizon[time_horizon].append(action_details)
         
+        # Use high-priority actions if available, otherwise use all actions
+        actions_to_process = high_priority_by_horizon
+        if not any(actions for actions in high_priority_by_horizon.values()):
+            logger.info("No high-priority actions found. Using all available actions as a fallback.")
+            actions_to_process = all_actions_by_horizon
+
         # Format high-priority items by time horizon for creating 3 initiatives
         high_priority_text = "\n\nHigh-Priority Actions Grouped by Time Horizon (for creating 3 initiatives):\n"
         
-        for horizon, actions in high_priority_by_horizon.items():
+        for horizon, actions in actions_to_process.items():
             high_priority_text += f"\n=== {horizon} High-Priority Actions ===\n"
             if actions:
                 for i, action in enumerate(actions, 1):
@@ -377,17 +400,66 @@ Create exactly 3 initiatives total. Make titles specific and descriptive based o
         try:
             logger.info(f"High Impact Agent starting with input keys: {list(input_data.keys())}")
             
+            # DETAILED DIAGNOSTIC LOGGING
+            print("\n" + "="*80)
+            print("HIGH IMPACT AGENT - DETAILED DIAGNOSTICS")
+            print("="*80)
+            print(f"Input keys: {list(input_data.keys())}")
+            
+            # Check if strategic_action exists
+            if 'strategic_action' in input_data:
+                print("✓ strategic_action key found in input_data")
+                strategic_action_result = input_data.get('strategic_action', {})
+                print(f"  strategic_action type: {type(strategic_action_result)}")
+                print(f"  strategic_action keys: {list(strategic_action_result.keys()) if isinstance(strategic_action_result, dict) else 'N/A'}")
+                
+                if isinstance(strategic_action_result, dict) and 'data' in strategic_action_result:
+                    print("✓ data key found in strategic_action")
+                    data = strategic_action_result['data']
+                    print(f"  data keys: {list(data.keys()) if isinstance(data, dict) else 'N/A'}")
+                    
+                    if isinstance(data, dict):
+                        if 'structured_action_plan' in data:
+                            print("✓ structured_action_plan found in data")
+                            plan = data['structured_action_plan']
+                            print(f"  structured_action_plan keys: {list(plan.keys()) if isinstance(plan, dict) else 'N/A'}")
+                            if isinstance(plan, dict):
+                                for key in ['near_term_ideas', 'medium_term_ideas', 'long_term_ideas']:
+                                    ideas = plan.get(key, [])
+                                    print(f"  {key}: {len(ideas)} ideas")
+                        else:
+                            print("✗ structured_action_plan NOT found in data")
+                            print(f"  Looking for time-based keys at data level...")
+                            for key in ['near_term_ideas', 'medium_term_ideas', 'long_term_ideas']:
+                                if key in data:
+                                    ideas = data.get(key, [])
+                                    print(f"  {key}: {len(ideas)} ideas found at data level")
+                else:
+                    print("✗ data key NOT found in strategic_action")
+            else:
+                print("✗ strategic_action key NOT found in input_data")
+                print(f"Available keys: {list(input_data.keys())}")
+            print("="*80 + "\n")
+            
             prompt = self.format_prompt(input_data)
             logger.info(f"Generated prompt length: {len(prompt)} characters")
             
             # Check if we have strategic action data
             strategic_action_data = input_data.get('strategic_action', {}).get('data', {})
-            action_plan_sections = strategic_action_data.get('structured_action_plan', {})
+
+            # Flexibly find the action plan data
+            action_plan_sections = {}
+            if 'structured_action_plan' in strategic_action_data:
+                action_plan_sections = strategic_action_data.get('structured_action_plan', {})
+            elif 'near_term_ideas' in strategic_action_data: # Check if the keys exist at the top level of 'data'
+                action_plan_sections = strategic_action_data
+            
             logger.info(f"Strategic action data keys: {list(strategic_action_data.keys())}")
             logger.info(f"Action plan sections keys: {list(action_plan_sections.keys())}")
             
             # Count high-priority items across all time horizons
             high_priority_count = 0
+            all_actions_count = 0
             for time_horizon, key in [
                 ("Near-Term", "near_term_ideas"),
                 ("Medium-Term", "medium_term_ideas"), 
@@ -396,13 +468,15 @@ Create exactly 3 initiatives total. Make titles specific and descriptive based o
                 ideas = action_plan_sections.get(key, [])
                 for idea in ideas:
                     for action_item in idea.get('action_items', []):
+                        all_actions_count += 1
                         if action_item.get('priority', '').lower() == 'high':
                             high_priority_count += 1
             
-            logger.info(f"Found {high_priority_count} high-priority action items to process")
+            logger.info(f"Found {high_priority_count} high-priority and {all_actions_count} total action items to process")
             
-            if high_priority_count == 0:
-                logger.warning("No high-priority action items found, creating fallback")
+            # If there are no actions at all, then create a fallback
+            if all_actions_count == 0:
+                logger.warning("No action items found, creating fallback")
                 # If no strategic action data, create a basic response
                 fallback_initiatives = [{
                     "title": "Strategic Implementation Framework",
