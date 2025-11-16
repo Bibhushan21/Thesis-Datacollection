@@ -26,7 +26,7 @@ def get_llm():
         convert_system_message_to_human=True,  # Required for Gemini
         max_output_tokens=8192,
         timeout=120,
-        max_retries=5,
+        max_retries=0,
     )
 
 # Legacy Mistral AI function (commented out)

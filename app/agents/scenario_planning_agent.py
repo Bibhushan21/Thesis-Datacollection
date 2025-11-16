@@ -98,13 +98,13 @@ After developing all scenarios, briefly:
         problem_explorer_data = input_data.get('problem_explorer', {}).get('data', {}).get('structured_output', {})
         problem_context = "N/A"
         if problem_explorer_data:
-            phase1_content = problem_explorer_data.get('phase1', {}).get('content', [])
-            if phase1_content:
-                problem_context = "\n".join(phase1_content)
+            section1_content = problem_explorer_data.get('section1', {}).get('content', [])
+            if section1_content:
+                problem_context = "\n".join(section1_content)
             elif problem_explorer_data.get('acknowledgment'):
                 problem_context = problem_explorer_data.get('acknowledgment')
             else:
-                problem_context = str(problem_explorer_data.get('phase1', 'Problem details not clearly defined in Phase 1.'))
+                problem_context = str(problem_explorer_data.get('section1', 'Problem details not clearly defined in Section 1.'))
         
         base_prompt = f"""Create distinct scenarios for the following strategic challenge:
 

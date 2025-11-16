@@ -125,15 +125,15 @@ Output Guidelines
         
         problem_context = ""
         if problem_explorer_output:
-            # Extract content from Phase 1: Define the Problem
-            phase1_content = problem_explorer_output.get('phase1', {}).get('content', [])
-            if phase1_content:
-                problem_context += "\n".join(phase1_content)
+            # Extract content from Section 1: Defining the Problem (not phase1, it's section1)
+            section1_content = problem_explorer_output.get('section1', {}).get('content', [])
+            if section1_content:
+                problem_context += "\n".join(section1_content)
             
             # Optionally, add acknowledgment or other relevant parts
             acknowledgment = problem_explorer_output.get('acknowledgment', '')
             if acknowledgment:
-                problem_context = f"{acknowledgment}\n{problem_context}" # Prepend acknowledgment
+                problem_context = f"{acknowledgment}\n\n{problem_context}" # Prepend acknowledgment
         
         return f"""Strategic Question: {strategic_question}
 Time Frame: {time_frame}

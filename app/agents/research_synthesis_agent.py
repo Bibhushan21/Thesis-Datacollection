@@ -144,9 +144,9 @@ Guidelines for the Agent
         problem_explorer_data = input_data.get('problem_explorer', {}).get('data', {}).get('structured_output', {})
         problem_definition_text = "N/A"
         if problem_explorer_data:
-            phase1_content = problem_explorer_data.get('phase1', {}).get('content', [])
-            if phase1_content:
-                problem_definition_text = "\n".join(phase1_content)
+            section1_content = problem_explorer_data.get('section1', {}).get('content', [])
+            if section1_content:
+                problem_definition_text = "\n".join(section1_content)
             elif problem_explorer_data.get('acknowledgment'):
                 problem_definition_text = problem_explorer_data.get('acknowledgment')
 

@@ -123,11 +123,11 @@ Output Guidelines
         problem_explorer_data = input_data.get('problem_explorer', {}).get('data', {}).get('structured_output', {})
         problem_summary = "Not available."
         if problem_explorer_data:
-            # Try to get a concise problem definition from Phase 1 or acknowledgment
-            phase1_content_list = problem_explorer_data.get('phase1', {}).get('content', [])
-            if isinstance(phase1_content_list, list) and phase1_content_list:
-                # Take the first item of phase1 content, split into words, take first 30, rejoin.
-                first_item_words = str(phase1_content_list[0]).split()
+            # Try to get a concise problem definition from Section 1 or acknowledgment
+            section1_content_list = problem_explorer_data.get('section1', {}).get('content', [])
+            if isinstance(section1_content_list, list) and section1_content_list:
+                # Take the first item of section1 content, split into words, take first 30, rejoin.
+                first_item_words = str(section1_content_list[0]).split()
                 problem_summary = " ".join(first_item_words[:30])
                 if len(first_item_words) > 30:
                     problem_summary += "..."
